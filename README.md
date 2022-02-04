@@ -1,1 +1,3 @@
-# happywhale2022_kaggle
+# Happywhale - Whale and Dolphin Identification Kaggle
+
+
