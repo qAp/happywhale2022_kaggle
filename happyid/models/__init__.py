@@ -1,1 +1,1 @@
-from senet import *
+from .senet import *
