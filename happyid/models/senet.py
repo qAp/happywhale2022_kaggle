@@ -382,11 +382,11 @@ def senet154(num_classes=1000, pretrained='imagenet', inchannels=3):
     return model
 
 
-def se_resnet50(num_classes=1000, pretrained='imagenet'):
+def se_resnet50(num_classes=1000, pretrained='imagenet', inchannels=3):
     model = SENet(SEResNetBottleneck, [3, 4, 6, 3], groups=1, reduction=16,
                   dropout_p=None, inplanes=64, input_3x3=False,
                   downsample_kernel_size=1, downsample_padding=0,
-                  num_classes=num_classes)
+                  num_classes=num_classes, inchannels=inchannels)
     if pretrained is not None:
         settings = pretrained_settings['se_resnet50'][pretrained]
         initialize_pretrained_model(model, num_classes, settings)
