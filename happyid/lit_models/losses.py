@@ -13,6 +13,23 @@ def normalize(x, axis=-1):
     return x
 
 
+def euclidean_dist(x, y):
+    """
+    Args:
+      x: pytorch Variable, with shape [m, d]
+      y: pytorch Variable, with shape [n, d]
+    Returns:
+      dist: pytorch Variable, with shape [m, n]
+    """
+    m, n = x.size(0), y.size(0)
+    xx = torch.pow(x, 2).sum(1, keepdim=True).expand(m, n)
+    yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
+    dist = xx + yy
+    dist.addmm_(1, -2, x, y.t())
+    dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
+    return dist
+
+
 def shortest_dist(dist_mat):
     """Parallel version.
     Args:
@@ -44,21 +61,29 @@ def shortest_dist(dist_mat):
     return dist
 
 
-def euclidean_dist(x, y):
+def local_dist(x, y):
     """
     Args:
-      x: pytorch Variable, with shape [m, d]
-      y: pytorch Variable, with shape [n, d]
+      x: pytorch Variable, with shape [M, m, d]
+      y: pytorch Variable, with shape [N, n, d]
     Returns:
-      dist: pytorch Variable, with shape [m, n]
+      dist: pytorch Variable, with shape [M, N]
     """
-    m, n = x.size(0), y.size(0)
-    xx = torch.pow(x, 2).sum(1, keepdim=True).expand(m, n)
-    yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
-    dist = xx + yy
-    dist.addmm_(1, -2, x, y.t())
-    dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
-    return dist
+    M, m, d = x.size()
+    N, n, d = y.size()
+    x = x.contiguous().view(M * m, d)
+    y = y.contiguous().view(N * n, d)
+    # shape [M * m, N * n]
+    dist_mat = euclidean_dist(x, y)
+    dist_mat = (torch.exp(dist_mat) - 1.) / (torch.exp(dist_mat) + 1.)
+    # shape [M * m, N * n] -> [M, m, N, n] -> [m, n, M, N]
+    dist_mat = dist_mat.contiguous().view(M, m, N, n).permute(1, 3, 0, 2)
+    # shape [M, N]
+    dist_mat = shortest_dist(dist_mat)
+    return dist_mat
+
+
+
 
 
 def hard_example_mining(dist_mat, labels, return_inds=False):
