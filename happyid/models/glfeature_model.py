@@ -58,4 +58,4 @@ class GLFeatureModel(nn.Module):
 
         out = self.fc(local_feat) * 16
 
-        return feat, global_feat, local_feat, out
+        return global_feat, local_feat, out
