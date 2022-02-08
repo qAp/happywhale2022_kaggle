@@ -13,6 +13,37 @@ def normalize(x, axis=-1):
     return x
 
 
+def shortest_dist(dist_mat):
+    """Parallel version.
+    Args:
+      dist_mat: pytorch Variable, available shape:
+        1) [m, n]
+        2) [m, n, N], N is batch size
+        3) [m, n, *], * can be arbitrary additional dimensions
+    Returns:
+      dist: three cases corresponding to `dist_mat`:
+        1) scalar
+        2) pytorch Variable, with shape [N]
+        3) pytorch Variable, with shape [*]
+    """
+    m, n = dist_mat.size()[:2]
+    # Just offering some reference for accessing intermediate distance.
+    dist = [[0 for _ in range(n)] for _ in range(m)]
+    for i in range(m):
+        for j in range(n):
+          if (i == 0) and (j == 0):
+              dist[i][j] = dist_mat[i, j]
+          elif (i == 0) and (j > 0):
+              dist[i][j] = dist[i][j - 1] + dist_mat[i, j]
+          elif (i > 0) and (j == 0):
+              dist[i][j] = dist[i - 1][j] + dist_mat[i, j]
+          else:
+              dist[i][j] = torch.min(dist[i - 1][j], dist[i][j - 1]) + dist_mat[i, j]
+
+    dist = dist[-1][-1]
+    return dist
+
+
 def euclidean_dist(x, y):
     """
     Args:
