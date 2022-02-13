@@ -24,8 +24,11 @@ def make_cv_folds(df, n_splits=5, random_state=42):
         print(
             f'Fold {fold} Train size {len(train_index)} Valid size {len(valid_index)}')
 
-        df_train = df.loc[train_index].reset_index(drop=True)
-        df_valid = df.loc[valid_index].reset_index(drop=True)
+        df_train = df.loc[train_index].reset_index()
+        df_valid = df.loc[valid_index].reset_index()
+
+        df_train = df_train.rename(columns={'index': 'idx_embed'})
+        df_valid = df_valid.rename(columns={'index': 'idx_embed'})
 
         df_train.to_csv(f'/kaggle/working/train_fold{fold}.csv', index=False)
         df_valid.to_csv(f'/kaggle/working/valid_fold{fold}.csv', index=False)
