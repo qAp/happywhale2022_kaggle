@@ -1,4 +1,4 @@
-
+from IPython.display import display
 import pandas as pd
 import torch
 import cv2
@@ -15,11 +15,27 @@ def correct_species_names(train):
         "bottlenose_dolpin": "bottlenose_dolphin"}, 
         inplace=True)
 
-def create_cv_folds(train):
-    skf = StratifiedKFold(n_splits=3)
-    splits = skf.split(X=train, y=train['individual_id'])
-    for fold, (train_idxs, valid_idxs) in enumerate(splits):
-        train.loc[valid_idxs, 'fold'] = fold
+
+def make_cv_folds(df, n_splits=5, random_state=42):
+    skf = StratifiedKFold(n_splits=n_splits, random_state=random_state)
+    splits = skf.split(X=df, y=df['individual_id'])
+
+    for fold, (train_index, valid_index) in enumerate(splits):
+        print(
+            f'Fold {fold} Train size {len(train_index)} Valid size {len(valid_index)}')
+
+        df_train = df.loc[train_index].reset_index(drop=True)
+        df_valid = df.loc[valid_index].reset_index(drop=True)
+
+        df_train.to_csv(f'/kaggle/working/train_fold{fold}.csv', index=False)
+        df_valid.to_csv(f'/kaggle/working/valid_fold{fold}.csv', index=False)
+
+    display(
+        pd.concat([df_train['individual_id'].value_counts(),
+                   df_valid['individual_id'].value_counts()],
+                  axis=1, keys=['train', 'valid'])
+    )
+
 
 @torch.no_grad()
 def image_embedding(model, jpg='image.jpg', image_size=128):
