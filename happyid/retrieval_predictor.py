@@ -14,6 +14,10 @@ class RetrievalPredictor:
         self.embed = embed
         self.image_size = image_size
 
+        self.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu')
+        
+        self.model.to(self.device)
         self.model.eval()
 
     def predict(self, fn):
@@ -29,6 +33,7 @@ class RetrievalPredictor:
         xb = xb[None, ...]
 
         with torch.no_grad():
+            xb = xb.to(self.device)
             embed = self.model(xb)
 
         dist_mat = euclidean_dist(embed, self.embed).squeeze()
