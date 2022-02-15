@@ -36,6 +36,7 @@ class RetrievalPredictor:
             xb = xb.to(self.device)
             embed = self.model(xb)
 
+        embed = embed.to('cpu')
         dist_mat = euclidean_dist(embed, self.embed).squeeze()
         val, ind = dist_mat.topk(k=5, largest=False)
         pr = self.embed_df.iloc[ind]['individual_id']
