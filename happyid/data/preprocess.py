@@ -62,9 +62,7 @@ def image_embedding(model, jpg='image.jpg', image_size=128):
 
 
 
-if __name__ == '__name__':
-    train = pd.read_csv(f'{DIR_BASE}/train.csv')
-    train.to_csv('/kaggle/working/train.csv')
+
 
 
 
