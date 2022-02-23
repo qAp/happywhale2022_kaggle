@@ -39,7 +39,7 @@ class IndividualIDDataset(torch.utils.data.Dataset):
         img = img / 255
         img = (img - MEAN_IMG) / STD_IMG
 
-        label = ID_ENCODER.transform([r['individual_id']])[0]
+        label = ID_ENCODER.transform([r['individual_id']])
         return img, label
 
 
