@@ -71,8 +71,10 @@ class BaseLitModel(pl.LightningModule):
             labels=list(yb.squeeze().cpu().numpy()), 
             predictions=pred_batch)
 
-        self.log('train_loss', loss)
-        self.log('train_metric', metric)
+        self.log('train_loss', loss, 
+                 on_step=True, on_epoch=True, prog_bar=True)
+        self.log('train_metric', metric, 
+                 on_step=True, on_epoch=True, prog_bar=True)
 
         return loss
 
@@ -90,5 +92,7 @@ class BaseLitModel(pl.LightningModule):
             labels=list(yb.squeeze().cpu().numpy()), 
             predictions=pred_batch)
 
-        self.log('valid_loss', loss)
-        self.log('valid_metric', metric)
+        self.log('valid_loss', loss, 
+                 on_step=False, on_epoch=True, prog_bar=True)
+        self.log('valid_metric', metric, 
+                 on_step=False, on_epoch=True, prog_bar=True)
