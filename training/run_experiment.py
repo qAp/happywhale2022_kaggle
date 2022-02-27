@@ -66,14 +66,14 @@ def main():
         logger.log_hyperparams(vars(args))
 
     early_stopping_callback = pl.callbacks.EarlyStopping(
-        monitor='valid_metric', mode='max', patience=10)
+        monitor='valid_loss', mode='min', patience=10)
 
     model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filename=(f'fold{args.fold:d}-' +
                   'epoch{epoch:03d}-valid_loss{valid_loss:.3f}-valid_metric{valid_metric:.3f}'),
         auto_insert_metric_name=False,
-        monitor='valid_metric',
-        mode='max',
+        monitor='valid_loss',
+        mode='min',
         save_last=True)
 
     lr_monitor_callback = pl.callbacks.LearningRateMonitor()
