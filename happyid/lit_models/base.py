@@ -54,7 +54,7 @@ class BaseLitModel(pl.LightningModule):
             lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
                 optimizer=optimizer,
                 max_lr=self.one_cycle_max_lr,
-                max_steps=self.one_cycle_max_steps)
+                total_steps=self.one_cycle_max_steps)
             return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler}
 
     def training_step(self, batch, batch_idx):
