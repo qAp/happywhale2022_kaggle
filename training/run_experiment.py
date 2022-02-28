@@ -39,7 +39,8 @@ def main():
     parser = _setup_parser()
 
     args = parser.parse_args()
-
+    print(args)
+    
     data_class = import_class(f'happyid.data.{args.data_class}')
     model_class = import_class(f'happyid.models.{args.model_class}')
     lit_model_class = import_class(
