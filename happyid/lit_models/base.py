@@ -65,7 +65,7 @@ class BaseLitModel(pl.LightningModule):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        pred_batch = logits.data.topk(k=5, dim=1, largest=True).values
+        pred_batch = logits.data.topk(k=5, dim=1, largest=True).indices
         pred_batch = [[p for p in pred] for pred in pred_batch.cpu().numpy()]
         metric = self.metric_fn(
             labels=list(yb.squeeze().cpu().numpy()), 
@@ -86,7 +86,7 @@ class BaseLitModel(pl.LightningModule):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        pred_batch = logits.data.topk(k=5, dim=1, largest=True).values
+        pred_batch = logits.data.topk(k=5, dim=1, largest=True).indices
         pred_batch = [[p for p in pred] for pred in pred_batch.cpu().numpy()]
         metric = self.metric_fn(
             labels=list(yb.squeeze().cpu().numpy()), 
