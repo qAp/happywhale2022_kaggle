@@ -41,7 +41,7 @@ class BaseLitModel(pl.LightningModule):
         add('--lr', type=float, default=LR)
         add('--optimizer', type=str, default=OPTIMIZER)
         add('--one_cycle_max_lr', type=float, default=None)
-        add('--one_cycle_max_steps', type=float, default=ONE_CYCLE_MAX_STEPS)
+        add('--one_cycle_max_steps', type=int, default=ONE_CYCLE_MAX_STEPS)
 
     def forward(self, x):
         return self.model(x)
