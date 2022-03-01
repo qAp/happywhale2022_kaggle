@@ -1,6 +1,7 @@
 
 
 import numpy as np
+import torch
 
 
 def map_per_image(label, predictions):
@@ -38,6 +39,23 @@ def map_per_set(labels, predictions):
     score : double
     """
     return np.mean([map_per_image(l, p) for l, p in zip(labels, predictions)])
+
+
+def mean_average_precision(labels=None, predictions=None):
+    '''
+    Mean average Precision @ 5
+
+    Args:
+        labels (torch.tensor) [batch_size, 1]: Labels (targets)
+        predictions (torch.tensor) [batch_size, 5]: Top 5 predictions
+    '''
+    scores = torch.zeros_like(labels, dtype=torch.float32)
+    i_sample, i_k = torch.where(labels == predictions)
+
+    if len(i_sample) != 0:
+        scores[i_sample] = 1 / (i_k.reshape(scores[i_sample].shape) + 1)
+
+    return scores.mean().item()
 
 
 def test():
