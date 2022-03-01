@@ -41,6 +41,15 @@ def map_per_set(labels, predictions):
     return np.mean([map_per_image(l, p) for l, p in zip(labels, predictions)])
 
 
+def mean_average_precision_5_inlists(labels=None, predictions=None):
+    predictions = [
+        [p for p in pred] for pred in predictions.cpu().numpy()
+        ]
+    return map_per_set(
+        labels=list(labels.squeeze().cpu().numpy()),
+        predictions=predictions)
+
+
 def mean_average_precision_5(labels=None, predictions=None):
     '''
     Mean average Precision @ 5
