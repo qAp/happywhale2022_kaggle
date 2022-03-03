@@ -1,6 +1,7 @@
 
 import os
 from tqdm.auto import tqdm
+from IPython.display import display
 import random
 import numpy as np
 import pandas as pd
@@ -55,6 +56,7 @@ assert set(df.src_individual_id.values).intersection(
 
 df.to_csv('/kaggle/working/train.csv', index=False)
 
+# Display the last processed image
 img_loaded = cv2.imread(f'{dir_out}/{img_id}.jpg')
 img_loaded = cv2.cvtColor(img_loaded, cv2.COLOR_BGR2RGB)
 fig, axs = plt.subplots(figsize=(12, 6), nrows=1, ncols=2)
@@ -62,3 +64,4 @@ axs = axs.flatten()
 axs[0].imshow(img)
 axs[1].imshow(img_loaded)
 plt.tight_layout();
+display(fig)
