@@ -11,7 +11,6 @@ from happyid.data.config import *
 
 
 df = pd.read_csv(f'{DIR_BASE}/train.csv')
-df = df.iloc[:10]
 
 existing_img_ids = list(df.image.str[:-4].values)
 existing_individual_ids = list(df.individual_id.values)
