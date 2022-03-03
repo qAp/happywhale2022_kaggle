@@ -64,4 +64,4 @@ axs = axs.flatten()
 axs[0].imshow(img)
 axs[1].imshow(img_loaded)
 plt.tight_layout();
-display(fig)
+plt.show()
