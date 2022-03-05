@@ -12,6 +12,12 @@ from happyid.data.config import *
 
 df = pd.read_csv(f'{DIR_BASE}/train.csv')
 
+# Take half of the images because /kaggle/working holds only 20 GB.
+vc = df.individual_id.value_counts()
+weights = 1 / vc
+weights = df.individual_id.map(weights.to_dict()).values
+df = df.sample(n=len(df)//2, weights=weights, random_state=42)
+
 existing_img_ids = list(df.image.str[:-4].values)
 existing_individual_ids = list(df.individual_id.values)
 
