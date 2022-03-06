@@ -159,3 +159,117 @@ class OrthogonalFusion(nn.Module):
         return f_fused
 
 
+class DOLG(nn.Module):
+    def __init__(self, data_config, args=None):
+        super().__init__()
+
+        self.args = vars(args) if args is not None else {}
+
+        self.n_classes = NUM_INDIVIDUALS
+        self.backbone = self.args.get('backbone', BACKBONE)
+        self.pretrained = self.args.get('pretrained', PRETRAINED)
+        self.in_channels = self.args.get('in_channels', IN_CHANNELS)
+        self.stride = self.args.get('stride', STRIDE)
+        self.pool = self.args.get('pool', POOL)
+        self.gem_p_trainable = self.args.get(
+            'gem_p_trainable', GEM_P_TRAINABLE)
+        self.embedding_size = self.args.get('embedding_size', EMBEDDING_SIZE)
+        self.dilations = self.args.get('dilations', DILATIONS)
+
+        self.create_model()
+
+    @staticmethod
+    def add_argparse_args(parser):
+        _add = parser.add_argument
+        _add('--backbone', type=str, default=BACKBONE)
+        _add('--pretrained', type=bool, default=PRETRAINED)
+        _add('--in_channels', type=int, default=IN_CHANNELS)
+        _add('--stride', type=int, nargs='+', default=STRIDE)
+        _add('--pool', type=str, default=POOL)
+        _add('--gem_p_trainable', type=bool, default=GEM_P_TRAINABLE)
+        _add('--embedding_size', type=int, default=EMBEDDING_SIZE)
+        _add('--dilations', type=int, nargs='+', default=DILATIONS)
+
+    def create_model(self):
+        self.backbone = timm.create_model(self.backbone,
+                                          pretrained=self.pretrained,
+                                          num_classes=0,
+                                          global_pool="",
+                                          in_chans=self.in_channels, features_only=True)
+
+        if ("efficientnet" in self.backbone) & (self.stride is not None):
+            self.backbone.conv_stem.stride = self.stride
+        backbone_out = self.backbone.feature_info[-1]['num_chs']
+        backbone_out_1 = self.backbone.feature_info[-2]['num_chs']
+
+        feature_dim_l_g = 1024
+        fusion_out = 2 * feature_dim_l_g
+
+        if self.pool == "gem":
+            self.global_pool = GeM(p_trainable=self.gem_p_trainable)
+        elif self.pool == "identity":
+            self.global_pool = torch.nn.Identity()
+        elif self.pool == "avg":
+            self.global_pool = nn.AdaptiveAvgPool2d(1)
+
+        self.fusion_pool = nn.AdaptiveAvgPool2d(1)
+        self.embedding_size = self.embedding_size
+
+        self.neck = nn.Sequential(
+            nn.Linear(fusion_out, self.embedding_size, bias=True),
+            nn.BatchNorm1d(self.embedding_size),
+            torch.nn.PReLU())
+
+        self.head_in_units = self.embedding_size
+        self.head = ArcMarginProduct_subcenter(
+            self.embedding_size, self.n_classes)
+
+        self.mam = MultiAtrousModule(
+            backbone_out_1, feature_dim_l_g, self.dilations)
+        self.conv_g = nn.Conv2d(backbone_out, feature_dim_l_g, kernel_size=1)
+        self.bn_g = nn.BatchNorm2d(
+            feature_dim_l_g, eps=0.001, momentum=0.1, affine=True, track_running_stats=True)
+        self.act_g = nn.SiLU(inplace=True)
+        self.attention2d = SpatialAttention2d(feature_dim_l_g)
+        self.fusion = OrthogonalFusion()
+
+    def forward(self, x, return_emb=False):
+
+        x = self.backbone(x)
+
+        x_l = x[-2]
+        x_g = x[-1]
+
+        x_l = self.mam(x_l)
+        x_l, att_score = self.attention2d(x_l)
+
+        x_g = self.conv_g(x_g)
+        x_g = self.bn_g(x_g)
+        x_g = self.act_g(x_g)
+
+        x_g = self.global_pool(x_g)
+        x_g = x_g[:, :, 0, 0]
+
+        x_fused = self.fusion(x_l, x_g)
+        x_fused = self.fusion_pool(x_fused)
+        x_fused = x_fused[:, :, 0, 0]
+
+        x_emb = self.neck(x_fused)
+
+        if return_emb:
+            return x_emb
+
+        logits = self.head(x_emb)
+        return logits
+
+    def freeze_weights(self, freeze=[]):
+        for name, child in self.named_children():
+            if name in freeze:
+                for param in child.parameters():
+                    param.requires_grad = False
+
+    def unfreeze_weights(self, freeze=[]):
+        for name, child in self.named_children():
+            if name in freeze:
+                for param in child.parameters():
+                    param.requires_grad = True
