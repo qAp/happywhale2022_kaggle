@@ -65,6 +65,9 @@ class IndividualID(BaseDataModule):
         add('--fold', type=int, default=FOLD)
         add('--image_size', type=int, default=IMAGE_SIZE)
 
+    def config(self):
+        return dict()
+
     def setup(self):
         df_train = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
