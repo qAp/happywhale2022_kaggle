@@ -159,6 +159,15 @@ class OrthogonalFusion(nn.Module):
         return f_fused
 
 
+DILATIONS = [3, 6, 9]
+PRETRAINED = True
+IN_CHANNELS = 3
+BACKBONE = 'resnet18'
+STRIDE = (1, 1)
+EMBEDDING_SIZE = 512
+POOL = 'gem'
+GEM_P_TRAINABLE = True
+
 class DOLG(nn.Module):
     def __init__(self, data_config, args=None):
         super().__init__()
