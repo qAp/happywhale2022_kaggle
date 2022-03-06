@@ -165,6 +165,7 @@ class DOLG(nn.Module):
         super().__init__()
 
         self.args = vars(args) if args is not None else {}
+        self.data_config = data_config
 
         self.n_classes = NUM_INDIVIDUALS
         self.backbone = self.args.get('backbone', BACKBONE)
