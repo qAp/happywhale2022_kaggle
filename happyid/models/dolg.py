@@ -12,6 +12,8 @@ from torch.nn import functional as F
 from torch.nn.parameter import Parameter
 import numpy as np
 
+from happyid.data.config import *
+
 
 class Swish(torch.autograd.Function):
 
