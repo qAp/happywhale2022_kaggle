@@ -259,6 +259,17 @@ def local_loss(
         loss = tri_loss(dist_ap, dist_an)
 
 
+class DenseCrossEntropy(nn.Module):
+    def forward(self, x, target):
+        x = x.float()
+        target = target.float()
+        logprobs = torch.nn.functional.log_softmax(x, dim=-1)
+
+        loss = -logprobs * target
+        loss = loss.sum(-1)
+        return loss.mean()
+
+
 class ArcFaceLossAdaptiveMargin(nn.modules.Module):
     def __init__(self, margins, n_classes, s=30.0):
         super().__init__()

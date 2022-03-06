@@ -35,16 +35,6 @@ class Swish_module(nn.Module):
         return Swish.apply(x)
 
 
-class DenseCrossEntropy(nn.Module):
-    def forward(self, x, target):
-        x = x.float()
-        target = target.float()
-        logprobs = torch.nn.functional.log_softmax(x, dim=-1)
-
-        loss = -logprobs * target
-        loss = loss.sum(-1)
-        return loss.mean()
-
 
 class ArcMarginProduct_subcenter(nn.Module):
     def __init__(self, in_features, out_features, k=3):
