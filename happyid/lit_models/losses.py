@@ -315,7 +315,8 @@ class ArcMarginProduct(nn.Module):
 
 
 class ArcFaceLoss(nn.modules.Module):
-    def __init__(self, s=45.0, m=0.1, crit="bce", weight=None, reduction="mean", class_weights_norm=None):
+    def __init__(self, s=45.0, m=0.1, crit="bce", 
+                 weight=None, reduction="mean", class_weights_norm=None):
         super().__init__()
 
         self.weight = weight
