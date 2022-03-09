@@ -183,7 +183,7 @@ class DOLG(nn.Module):
         self.create_model()
 
         if self.freeze:
-            self.freeze_weights(feeze=self.freeze)
+            self.freeze_weights(freeze=self.freeze)
 
     @staticmethod
     def add_argparse_args(parser):
