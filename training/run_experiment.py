@@ -14,7 +14,7 @@ def _setup_parser():
 
     _add = parser.add_argument
     _add('--data_class', type=str, default='IndividualID')
-    _add('--model_class', type=str, default='resnet18')
+    _add('--model_class', type=str, default='DOLG')
     _add('--lit_model_class', type=str, default='BaseLitModel')
     _add('--dir_out', type=str, default='training/logs')
     _add('--load_from_checkpoint', type=str, default=None)
