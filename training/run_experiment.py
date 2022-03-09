@@ -24,7 +24,7 @@ def _setup_parser():
 
     data_class = import_class(f'happyid.data.{args.data_class}')
     data_group = parser.add_argument_group('Data Args')
-    data_class.add_argparse_args(parser)
+    data_class.add_argparse_args(data_group)
 
     model_class = import_class(f'happyid.models.{args.model_class}')
     model_group = parser.add_argument_group('Model Args')
@@ -33,7 +33,7 @@ def _setup_parser():
     lit_model_class = import_class(
         f'happyid.lit_models.{args.lit_model_class}')
     lit_model_group = parser.add_argument_group('LitModel Args')
-    lit_model_class.add_argparse_args(parser)
+    lit_model_class.add_argparse_args(lit_model_group)
 
     parser.add_argument('--help', '-h', action='help')
     return parser
