@@ -159,6 +159,7 @@ STRIDE = (1, 1)
 EMBEDDING_SIZE = 512
 POOL = 'gem'
 GEM_P_TRAINABLE = True
+FREEZE = []
 
 class DOLG(nn.Module):
     def __init__(self, data_config, args=None):
@@ -177,8 +178,12 @@ class DOLG(nn.Module):
             'gem_p_trainable', GEM_P_TRAINABLE)
         self.embedding_size = self.args.get('embedding_size', EMBEDDING_SIZE)
         self.dilations = self.args.get('dilations', DILATIONS)
+        self.freeze = self.args.get('freeze', FREEZE)
 
         self.create_model()
+
+        if self.freeze:
+            self.freeze_weights(feeze=self.freeze)
 
     @staticmethod
     def add_argparse_args(parser):
@@ -191,6 +196,7 @@ class DOLG(nn.Module):
         _add('--gem_p_trainable', type=bool, default=GEM_P_TRAINABLE)
         _add('--embedding_size', type=int, default=EMBEDDING_SIZE)
         _add('--dilations', type=int, nargs='+', default=DILATIONS)
+        _add('--freeze', type=str, nargs='+', default=FREEZE)
 
     def create_model(self):
         self.backbone = timm.create_model(self.backbone,
