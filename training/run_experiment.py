@@ -75,7 +75,7 @@ def main():
 
     model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filename=(f'fold{args.fold:d}-' +
-                  'epoch{epoch:03d}-valid_loss{valid_loss:.3f}-valid_metric{valid_metric:.3f}'),
+                  'epoch{epoch:03d}-valid_loss{valid_loss:.3f}'),
         auto_insert_metric_name=False,
         monitor='valid_loss',
         mode='min',

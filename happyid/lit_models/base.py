@@ -65,14 +65,9 @@ class BaseLitModel(pl.LightningModule):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        prb = logits.data.topk(k=5, dim=1, largest=True).indices
-        metric = self.metric_fn(labels=yb, predictions=prb)
-
-        self.log('train_loss', loss, 
+        self.log('train_loss', loss,
                  on_step=True, on_epoch=False, prog_bar=True)
-        self.log('train_metric', metric, 
-                 on_step=True, on_epoch=False, prog_bar=True)
-
+                 
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -83,10 +78,7 @@ class BaseLitModel(pl.LightningModule):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        prb = logits.data.topk(k=5, dim=1, largest=True).indices
-        metric = self.metric_fn(labels=yb, predictions=prb)
+        self.log('valid_loss', loss,
+                 on_step=False, on_epoch=True, prog_bar=True)
 
-        self.log('valid_loss', loss, 
-                 on_step=False, on_epoch=True, prog_bar=True)
-        self.log('valid_metric', metric, 
-                 on_step=False, on_epoch=True, prog_bar=True)
+
