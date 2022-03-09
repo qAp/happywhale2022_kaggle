@@ -54,7 +54,7 @@ def main():
     data.prepare_data()
     data.setup()
 
-    model = model_class()
+    model = model_class(data_config=data.config(), args=args)
 
     if args.load_from_checkpoint is not None:
         lit_model = lit_model_class.load_from_checkpoint(
