@@ -66,7 +66,6 @@ class BaseLitModel(pl.LightningModule):
         loss = self.loss_fn(logits, yb.squeeze())
 
         prb = logits.data.topk(k=5, dim=1, largest=True).indices
-        print('training step:', prb.device, yb.device)
         metric = self.metric_fn(labels=yb, predictions=prb)
 
         self.log('train_loss', loss, 
@@ -85,7 +84,6 @@ class BaseLitModel(pl.LightningModule):
         loss = self.loss_fn(logits, yb.squeeze())
 
         prb = logits.data.topk(k=5, dim=1, largest=True).indices
-        print('validation step:', prb.device, yb.device)
         metric = self.metric_fn(labels=yb, predictions=prb)
 
         self.log('valid_loss', loss, 
