@@ -26,6 +26,10 @@ def _setup_parser():
     data_group = parser.add_argument_group('Data Args')
     data_class.add_argparse_args(parser)
 
+    model_class = import_class(f'happyid.models.{args.model_class}')
+    model_group = parser.add_argument_group('Model Args')
+    model_class.add_argparse_args(model_group)
+
     lit_model_class = import_class(
         f'happyid.lit_models.{args.lit_model_class}')
     lit_model_group = parser.add_argument_group('LitModel Args')
