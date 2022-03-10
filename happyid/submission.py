@@ -6,6 +6,8 @@ from happyid.data.config import *
 from happyid.utils import import_class
 from happyid.lit_models import BaseLitModel
 
+
+
 def _setup_parser():
     parser = argparse.ArgumentParser()
     _add = parser.add_argument
@@ -15,7 +17,12 @@ def _setup_parser():
     _add('--pretrained', type=bool, default=False)
     _add('--image_size', type=int, default=128)
     _add('--batch_size', type=int, default=512)
+    _add('--infer_subset', type=int, default=None, 
+         help='Number of samples to infer on. (for debugging)')
+
+    _add('--help', action='help')
     return parser
+
 
 def main():
 
@@ -39,15 +46,21 @@ def main():
 
         models.append(lit_model)
 
-
     predictor_class = import_class(f'happyid.{args.predictor_class}')
     predictor = predictor_class(models=models, image_size=args.image_size)
 
+    if args.infer_subset is not None:
+        pths = test_image_paths[:args.infer_subset]
+    else:
+        pths = test_image_paths[:]
 
-    pred_list = predictor.predict(
-        pths=test_image_paths[:100], batch_size=args.batch_size)
+    pred_list = predictor.predict(pths=pths, batch_size=args.batch_size)
+    pred_list = [' '.join(pred) for pred in pred_list]
 
-    df.loc[:99, 'predictions'] = [' '.join(pred) for pred in pred_list]
+    if args.infer_subset is not None:
+        df.loc[:args.infer_subset - 1, 'predictions'] = pred_list
+    else:
+        df['predictions'] = pred_list
 
     df.to_csv('/kaggle/working/submission.csv', index=False)
 
