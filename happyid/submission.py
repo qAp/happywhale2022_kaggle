@@ -20,7 +20,6 @@ def _setup_parser():
     _add('--infer_subset', type=int, default=None, 
          help='Number of samples to infer on. (for debugging)')
 
-    _add('--help', action='help')
     return parser
 
 
@@ -49,19 +48,16 @@ def main():
     predictor_class = import_class(f'happyid.{args.predictor_class}')
     predictor = predictor_class(models=models, image_size=args.image_size)
 
-    if args.infer_subset is not None:
-        pths = test_image_paths[:args.infer_subset]
+    if args.infer_subset is None:
+        n_sample = len(test_image_paths)
     else:
-        pths = test_image_paths[:]
+        n_sample = args.infer_subset
 
-    pred_list = predictor.predict(pths=pths, batch_size=args.batch_size)
+    pred_list = predictor.predict(pths=test_image_paths[:n_sample],
+                                  batch_size=args.batch_size)
     pred_list = [' '.join(pred) for pred in pred_list]
 
-    if args.infer_subset is not None:
-        df.loc[:args.infer_subset - 1, 'predictions'] = pred_list
-    else:
-        df['predictions'] = pred_list
-
+    df.loc[:n_sample - 1, 'predictions'] = pred_list
     df.to_csv('/kaggle/working/submission.csv', index=False)
 
 
