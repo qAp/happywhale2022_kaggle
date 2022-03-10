@@ -1,1 +1,2 @@
 from .retrieval_predictor import RetrievalPredictor
+from .softmax_predictor import SoftmaxPredictor
