@@ -9,7 +9,7 @@ from happyid.lit_models import BaseLitModel
 def _setup_parser():
     parser = argparse.ArgumentParser()
     _add = parser.add_argument
-    _add('--predictor', type=str, default='SoftmaxPredictor')
+    _add('--predictor_class', type=str, default='SoftmaxPredictor')
     _add('--checkpoint_path', type=str, nargs='+', default='best.pth')
     _add('--model_class', type=str, nargs='+', default='DOLG')
     _add('--pretrained', type=bool, default=False)
