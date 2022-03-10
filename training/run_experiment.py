@@ -5,14 +5,14 @@ import argparse
 import albumentations as albu
 import pytorch_lightning as pl
 
-from happyid.utils import import_class
+from happyid.utils import import_class, setup_parser
 
 
 
 
 
 def main():
-    parser = _setup_parser()
+    parser = setup_parser()
 
     args = parser.parse_args()
     print(args)
