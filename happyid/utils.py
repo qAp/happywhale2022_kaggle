@@ -10,7 +10,7 @@ def import_class(s):
     return getattr(module, class_name)
 
 
-def _setup_parser():
+def setup_parser():
     parser = argparse.ArgumentParser(add_help=False)
     pl.Trainer.add_argparse_args(parser)
 
