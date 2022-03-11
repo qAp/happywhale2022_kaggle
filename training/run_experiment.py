@@ -43,7 +43,7 @@ def main():
         logger.log_hyperparams(vars(args))
 
     early_stopping_callback = pl.callbacks.EarlyStopping(
-        monitor='valid_loss', mode='min', patience=10)
+        monitor='valid_loss', mode='min', patience=100)
 
     model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filename=(f'fold{args.fold:d}-' +
