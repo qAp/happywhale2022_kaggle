@@ -47,6 +47,7 @@ META_DATA_PATH = '/kaggle/input/happyid-train-meta'
 FOLD = 0
 IMAGE_SIZE = 64
 
+
 class IndividualID(BaseDataModule):
     def __init__(self, args=None):
         super().__init__(args)
@@ -69,15 +70,35 @@ class IndividualID(BaseDataModule):
         return dict()
 
     def setup(self):
-        df_train = pd.read_csv(
+        train_df = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
-        self.tfm_train = albu.Compose(base_tfms(self.image_size))
-        self.train_ds = IndividualIDDataset(df_train, transform=self.tfm_train)
 
-        df_valid = pd.read_csv(
+        self.train_ds = IndividualIDDataset(
+            train_df,
+            transform=albu.Compose(base_tfms(self.image_size))
+        )
+
+        id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
+        self.train_sampler = torch.utils.data.WeightedRandomSampler(
+            weights=train_df['individual_id'].map(
+                lambda x: id2weight[x]).values,
+            num_samples=self.batch_size, replacement=True)
+
+        valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
-        self.tfm_valid = albu.Compose(base_tfms(self.image_size))
-        self.valid_ds = IndividualIDDataset(df_valid, transform=self.tfm_valid)
+
+        self.valid_ds = IndividualIDDataset(
+            valid_df,
+            transform=albu.Compose(base_tfms(self.image_size))
+        )
 
     def prepare_data(self):
         assert os.path.exists(self.meta_data_path)
+
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader(
+            dataset=self.train_ds,
+            batch_size=self.batch_size,
+            sampler=self.train_sampler,
+            num_workers=self.num_workers,
+            pin_memory=self.on_gpu)
