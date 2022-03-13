@@ -154,7 +154,7 @@ class OrthogonalFusion(nn.Module):
 DILATIONS = [3, 6, 9]
 PRETRAINED = True
 IN_CHANNELS = 3
-BACKBONE = 'resnet18'
+BACKBONE_NAME = 'resnet18'
 STRIDE = (1, 1)
 EMBEDDING_SIZE = 512
 POOL = 'gem'
@@ -169,7 +169,7 @@ class DOLG(nn.Module):
         self.data_config = data_config
 
         self.n_classes = NUM_INDIVIDUALS
-        self.backbone = self.args.get('backbone', BACKBONE)
+        self.backbone_name = self.args.get('backbone_name', BACKBONE_NAME)
         self.pretrained = self.args.get('pretrained', PRETRAINED)
         self.in_channels = self.args.get('in_channels', IN_CHANNELS)
         self.stride = self.args.get('stride', STRIDE)
@@ -188,7 +188,7 @@ class DOLG(nn.Module):
     @staticmethod
     def add_argparse_args(parser):
         _add = parser.add_argument
-        _add('--backbone', type=str, default=BACKBONE)
+        _add('--backbone_name', type=str, default=BACKBONE_NAME)
         _add('--pretrained', type=bool, default=PRETRAINED)
         _add('--in_channels', type=int, default=IN_CHANNELS)
         _add('--stride', type=int, nargs='+', default=STRIDE)
@@ -199,13 +199,13 @@ class DOLG(nn.Module):
         _add('--freeze', type=str, nargs='+', default=FREEZE)
 
     def create_model(self):
-        self.backbone = timm.create_model(self.backbone,
+        self.backbone = timm.create_model(self.backbone_name,
                                           pretrained=self.pretrained,
                                           num_classes=0,
                                           global_pool="",
                                           in_chans=self.in_channels, features_only=True)
 
-        if ("efficientnet" in self.backbone) & (self.stride is not None):
+        if ("efficientnet" in self.backbone_name) & (self.stride is not None):
             self.backbone.conv_stem.stride = self.stride
         backbone_out = self.backbone.feature_info[-1]['num_chs']
         backbone_out_1 = self.backbone.feature_info[-2]['num_chs']
