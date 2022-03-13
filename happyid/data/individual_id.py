@@ -80,9 +80,9 @@ class IndividualID(BaseDataModule):
 
         id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
         self.train_sampler = torch.utils.data.WeightedRandomSampler(
-            weights=train_df['individual_id'].map(
-                lambda x: id2weight[x]).values,
-            num_samples=self.batch_size, replacement=True)
+            weights=train_df['individual_id'].map(lambda x: id2weight[x]).values,
+            num_samples=len(self.train_ds), 
+            replacement=True)
 
         valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
