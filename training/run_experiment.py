@@ -59,8 +59,8 @@ def main():
 
     callbacks = [early_stopping_callback,
                  model_checkpoint_callback,
-                 lr_monitor_callback,
-                 model_summary_callback]
+                 lr_monitor_callback,]
+                #  model_summary_callback]
 
     trainer = pl.Trainer.from_argparse_args(args,
                                             weights_save_path=args.dir_out,
