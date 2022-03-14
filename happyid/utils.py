@@ -18,7 +18,7 @@ def setup_parser():
     _add('--data_class', type=str, default='IndividualID')
     _add('--model_class', type=str, default='DOLG')
     _add('--lit_model_class', type=str, default='BaseLitModel')
-    _add('--dir_out', type=str, default='training/logs')
+    _add('--dir_out', type=str, default='/kaggle/working/training/logs')
     _add('--load_from_checkpoint', type=str, default=None)
     _add('--wandb', action='store_true', default=False)
 
