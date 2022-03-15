@@ -1,3 +1,4 @@
+
 import os
 import joblib
 import numpy as np
@@ -10,7 +11,7 @@ import pytorch_lightning as pl
 
 from happyid.data.config import *
 from happyid.data.base_data_module import BaseDataModule
-from happyid.data.transforms import base_tfms
+from happyid.data.transforms import base_tfms, aug_tfms
 
 
 ID_ENCODER = joblib.load('/kaggle/input/happyid-label-encoding/label_encoder')
@@ -58,8 +59,12 @@ class IndividualID(BaseDataModule):
         self.meta_data_path = self.args.get('meta_data_path', META_DATA_PATH)
         self.fold = self.args.get('fold', FOLD)
         self.image_size = self.args.get('image_size', IMAGE_SIZE)
+        self.aug = self.args.get('aug', False)
 
-        self.train_tfms = base_tfms(self.image_size)
+        if self.aug:
+            self.train_tfms = aug_tfms(self.image_size)
+        else:
+            self.train_tfms = base_tfms(self.image_size)
         self.valid_tfms = base_tfms(self.image_size)
 
     @staticmethod
@@ -69,6 +74,7 @@ class IndividualID(BaseDataModule):
         add('--meta_data_path', type=str, default=META_DATA_PATH)
         add('--fold', type=int, default=FOLD)
         add('--image_size', type=int, default=IMAGE_SIZE)
+        add('--aug', action='store_true', default=False)
 
     def config(self):
         return dict()
