@@ -114,9 +114,13 @@ class IndividualID(BaseDataModule):
             pin_memory=self.on_gpu)
 
     def show_batch(self, split='train'):
-        train_iter = iter(self.train_dataloader())
+        if split == 'valid':
+            dl = iter(self.val_dataloader())
+        else:
+            dl = iter(self.train_dataloader())
+        
         for _ in range(np.random.randint(low=1, high=11)):
-            xb, yb = next(train_iter)
+            xb, yb = next(dl)
 
         images = STD_IMG * xb.numpy() + MEAN_IMG
         images = (255 * images).astype('uint8')
