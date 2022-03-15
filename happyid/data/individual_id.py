@@ -74,9 +74,10 @@ class IndividualID(BaseDataModule):
         train_df = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
 
+        self.train_tfms = base_tfms(self.image_size)
         self.train_ds = IndividualIDDataset(
             train_df,
-            transform=albu.Compose(base_tfms(self.image_size))
+            transform=albu.Compose(self.train_tfms)
         )
 
         id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
@@ -88,9 +89,10 @@ class IndividualID(BaseDataModule):
         valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
 
+        self.valid_tfms = base_tfms(self.image_size)
         self.valid_ds = IndividualIDDataset(
             valid_df,
-            transform=albu.Compose(base_tfms(self.image_size))
+            transform=albu.Compose(self.valid_tfms)
         )
 
     def prepare_data(self):
