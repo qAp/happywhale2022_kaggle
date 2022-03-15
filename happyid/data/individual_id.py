@@ -59,6 +59,9 @@ class IndividualID(BaseDataModule):
         self.fold = self.args.get('fold', FOLD)
         self.image_size = self.args.get('image_size', IMAGE_SIZE)
 
+        self.train_tfms = base_tfms(self.image_size)
+        self.valid_tfms = base_tfms(self.image_size)
+
     @staticmethod
     def add_argparse_args(parser):
         BaseDataModule.add_argparse_args(parser)
@@ -74,7 +77,6 @@ class IndividualID(BaseDataModule):
         train_df = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
 
-        self.train_tfms = base_tfms(self.image_size)
         self.train_ds = IndividualIDDataset(
             train_df,
             transform=albu.Compose(self.train_tfms)
@@ -89,7 +91,6 @@ class IndividualID(BaseDataModule):
         valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
 
-        self.valid_tfms = base_tfms(self.image_size)
         self.valid_ds = IndividualIDDataset(
             valid_df,
             transform=albu.Compose(self.valid_tfms)
