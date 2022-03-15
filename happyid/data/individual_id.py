@@ -109,7 +109,7 @@ class IndividualID(BaseDataModule):
 
     def show_batch(self, split='train'):
         train_iter = iter(self.train_dataloader())
-        for _ in range(np.random.randint(low=0, high=5)):
+        for _ in range(np.random.randint(low=1, high=11)):
             xb, yb = next(train_iter)
 
         images = STD_IMG * xb.numpy() + MEAN_IMG
