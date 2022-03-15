@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import torch
 import cv2
+import matplotlib.pyplot as plt
 import albumentations as albu
 import pytorch_lightning as pl
 
@@ -102,3 +103,22 @@ class IndividualID(BaseDataModule):
             sampler=self.train_sampler,
             num_workers=self.num_workers,
             pin_memory=self.on_gpu)
+
+    def show_batch(self, split='train'):
+        train_iter = iter(self.train_dataloader())
+        for _ in range(np.random.randint(low=0, high=5)):
+            xb, yb = next(train_iter)
+
+        images = STD_IMG * xb.numpy() + MEAN_IMG
+        images = (255 * images).astype('uint8')
+        labels = ID_ENCODER.inverse_transform(yb.squeeze().numpy())
+
+        ncols = 4
+        nrows = (self.batch_size - 1) // ncols + 1
+        fig, axs = plt.subplots(figsize=(12, 3 * nrows), nrows=nrows, ncols=ncols)
+        axs = axs.flatten()
+        for i in range(self.batch_size):
+            axs[i].imshow(images[i])
+            axs[i].set_title(labels[i])
+        plt.tight_layout()
+        return fig, axs
