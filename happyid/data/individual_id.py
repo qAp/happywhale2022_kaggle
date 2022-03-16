@@ -78,9 +78,16 @@ class IndividualID(BaseDataModule):
 
     def config(self):
         epochs = self.args.get('max_epochs')
-        batches_per_epoch = len(self.train_dataloader())
-        total_steps = epochs * batches_per_epoch
-        return dict(total_steps=total_steps)
+        len_dl = len(self.train_dataloader())
+
+        overfit_batches = self.args.get('overfit_batches')
+        if overfit_batches is not None:
+            if isinstance(overfit_batches, int):
+                len_dl = overfit_batches
+            else:
+                len_dl = int(overfit_batches * len_dl)
+
+        return dict(total_steps=epochs * len_dl)
 
     def setup(self):
         train_df = pd.read_csv(
