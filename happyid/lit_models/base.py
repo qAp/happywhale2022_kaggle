@@ -30,8 +30,7 @@ class BaseLitModel(pl.LightningModule):
         optimizer = self.args.get('optimizer', OPTIMIZER)
         self.optimizer_class = getattr(torch.optim, optimizer)
         self.one_cycle_max_lr = self.args.get('one_cycle_max_lr', None)
-        self.one_cycle_max_steps = self.args.get(
-            'one_cycle_max_steps', ONE_CYCLE_MAX_STEPS)
+        self.one_cycle_max_steps = self.model.data_config['total_steps']
 
     @staticmethod
     def add_argparse_args(parser):
@@ -54,8 +53,12 @@ class BaseLitModel(pl.LightningModule):
             lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
                 optimizer=optimizer,
                 max_lr=self.one_cycle_max_lr,
-                total_steps=self.one_cycle_max_steps)
-            return {'optimizer': optimizer, 'lr_scheduler': lr_scheduler}
+                total_steps=self.model.data_config['total_steps'])
+                
+            return {'optimizer': optimizer, 
+                    'lr_scheduler': 
+                        {'scheduler': lr_scheduler, 'interval': 'step'}
+                    }
 
     def training_step(self, batch, batch_idx):
         xb, yb = batch

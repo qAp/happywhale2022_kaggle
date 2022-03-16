@@ -77,7 +77,10 @@ class IndividualID(BaseDataModule):
         add('--aug', action='store_true', default=False)
 
     def config(self):
-        return dict()
+        epochs = self.args.get('max_epochs')
+        batches_per_epoch = len(self.train_dataloader())
+        total_steps = epochs * batches_per_epoch
+        return dict(total_steps=total_steps)
 
     def setup(self):
         train_df = pd.read_csv(
