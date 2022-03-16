@@ -25,6 +25,7 @@ def main():
     data = data_class(args)
     data.prepare_data()
     data.setup()
+    # fig, axs = data.show_batch(split='train')
 
     model = model_class(data_config=data.config(), args=args)
 
@@ -42,9 +43,6 @@ def main():
         logger.watch(model)
         logger.log_hyperparams(vars(args))
 
-    early_stopping_callback = pl.callbacks.EarlyStopping(
-        monitor='valid_loss', mode='min', patience=100)
-
     model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filename=(f'fold{args.fold:d}-' +
                   'epoch{epoch:03d}-valid_loss{valid_loss:.3f}'),
@@ -57,10 +55,9 @@ def main():
 
     model_summary_callback = pl.callbacks.ModelSummary(max_depth=10)
 
-    callbacks = [early_stopping_callback,
-                 model_checkpoint_callback,
-                 lr_monitor_callback,]
-                #  model_summary_callback]
+    callbacks = [model_checkpoint_callback,
+                 lr_monitor_callback,
+                 model_summary_callback]
 
     trainer = pl.Trainer.from_argparse_args(args,
                                             weights_save_path=args.dir_out,
