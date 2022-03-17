@@ -46,7 +46,8 @@ class BaseLitModel(pl.LightningModule):
         return self.model(x)
 
     def configure_optimizers(self):
-        optimizer = self.optimizer_class(params=self.parameters(), lr=self.lr)
+        params = (p for p in self.parameters() if p.requires_grad == True)
+        optimizer = self.optimizer_class(params=params, lr=self.lr)
         if self.one_cycle_max_lr is None:
             return {'optimizer': optimizer}
         else:
