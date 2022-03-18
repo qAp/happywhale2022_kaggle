@@ -39,7 +39,7 @@ def main():
     for p, model_class in zip(args.checkpoint_path, args.model_class):
 
         model_class = import_class(f'happyid.models.{model_class}')
-        model = model_class(data_config=None, args=args)
+        model = model_class(args=args)
         lit_model = BaseLitModel.load_from_checkpoint(
             checkpoint_path=p, model=model, args=args)
 
