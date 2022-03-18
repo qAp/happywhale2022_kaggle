@@ -46,18 +46,17 @@ def main():
     predictor = predictor_class(models=models, image_size=args.image_size)
 
     df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
-    test_image_paths = (f'{DIR_BASE}/test_images/' + df['image']).to_list()
+    test_image_paths = (f'{DIR_BASE}/test_images/' + df['image']).values
 
     if args.infer_subset is None:
-        idx = list(df.index.values)
+        idx = df.index.values
     else:
-        idx = list(
-            np.random.permutation(len(df))[:args.infer_subset].astype(int))
+        idx = np.random.permutation(len(df))[:args.infer_subset]
 
     pred_list = predictor.predict(pths=test_image_paths[idx],
                                   batch_size=args.batch_size)
     pred_list = [' '.join(pred) for pred in pred_list]
-    print(idx)
+
     df.loc[idx, 'predictions'] = pred_list
     df.to_csv('/kaggle/working/submission.csv', index=False)
 
