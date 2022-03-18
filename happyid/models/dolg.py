@@ -162,7 +162,7 @@ GEM_P_TRAINABLE = True
 FREEZE = []
 
 class DOLG(nn.Module):
-    def __init__(self, data_config, args=None):
+    def __init__(self, data_config={}, args=None):
         super().__init__()
 
         self.args = vars(args) if args is not None else {}
