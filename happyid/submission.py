@@ -28,9 +28,6 @@ def main():
     parser = _setup_parser()
     args = parser.parse_args()
 
-    df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
-    test_image_paths = (f'{DIR_BASE}/test_images/' + df['image']).to_list()
-
     assert len(args.checkpoint_path) == len(args.model_class)
     for p in args.checkpoint_path:
         assert os.path.exists(p)
@@ -48,16 +45,19 @@ def main():
     predictor_class = import_class(f'happyid.{args.predictor_class}')
     predictor = predictor_class(models=models, image_size=args.image_size)
 
-    if args.infer_subset is None:
-        n_sample = len(test_image_paths)
-    else:
-        n_sample = args.infer_subset
+    df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
+    test_image_paths = (f'{DIR_BASE}/test_images/' + df['image']).to_list()
 
-    pred_list = predictor.predict(pths=test_image_paths[:n_sample],
+    if args.infer_subset is None:
+        select_index = df.index.values
+    else:
+        select_index = np.random.permutation(len(df))[:args.infer_subset]
+
+    pred_list = predictor.predict(pths=test_image_paths[select_index],
                                   batch_size=args.batch_size)
     pred_list = [' '.join(pred) for pred in pred_list]
 
-    df.loc[:n_sample - 1, 'predictions'] = pred_list
+    df.loc[select_index, 'predictions'] = pred_list
     df.to_csv('/kaggle/working/submission.csv', index=False)
 
 
