@@ -41,8 +41,11 @@ class IndividualIDDataset(torch.utils.data.Dataset):
         img = img / 255
         img = (img - MEAN_IMG) / STD_IMG
 
-        label = ID_ENCODER.transform([r['individual_id']])
-        return img, label
+        if 'individual_id' in r:
+            label = ID_ENCODER.transform([r['individual_id']])
+            return img, label
+        else:
+            return img
 
 
 META_DATA_PATH = '/kaggle/input/happyid-train-meta'
@@ -66,6 +69,7 @@ class IndividualID(BaseDataModule):
         else:
             self.train_tfms = base_tfms(self.image_size)
         self.valid_tfms = base_tfms(self.image_size)
+        self.test_tfms = base_tfms(self.image_size)
 
     @staticmethod
     def add_argparse_args(parser):
@@ -97,6 +101,11 @@ class IndividualID(BaseDataModule):
         self.valid_ds = IndividualIDDataset(
             valid_df,
             transform=albu.Compose(self.valid_tfms)
+        )
+
+        test_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
+        self.test_ds = IndividualIDDataset(
+            test_df, transform=albu.Compose(self.test_tfms)
         )
 
     def prepare_data(self):
