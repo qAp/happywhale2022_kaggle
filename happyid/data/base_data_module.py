@@ -57,6 +57,6 @@ class BaseDataModule(pl.LightningDataModule):
         return torch.utils.data.DataLoader(
             dataset=self.test_ds,
             batch_size=self.batch_size,
-            shuffule=False,
+            shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.on_gpu)
