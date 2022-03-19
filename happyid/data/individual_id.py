@@ -122,22 +122,27 @@ class IndividualID(BaseDataModule):
     def show_batch(self, split='train'):
         if split == 'valid':
             dl = iter(self.val_dataloader())
+        elif split == 'test':
+            dl = iter(self.test_dataloader())
         else:
             dl = iter(self.train_dataloader())
         
         for _ in range(np.random.randint(low=1, high=11)):
-            xb, yb = next(dl)
+            xb, *yb = next(dl)
 
         images = STD_IMG * xb.numpy() + MEAN_IMG
         images = (255 * images).astype('uint8')
-        labels = ID_ENCODER.inverse_transform(yb.squeeze().numpy())
+        if yb:
+            labels = ID_ENCODER.inverse_transform(yb.squeeze().numpy())
 
         ncols = 4
         nrows = (self.batch_size - 1) // ncols + 1
-        fig, axs = plt.subplots(figsize=(12, 3 * nrows), nrows=nrows, ncols=ncols)
+        fig, axs = plt.subplots(figsize=(12, 3 * nrows), 
+                                nrows=nrows, ncols=ncols)
         axs = axs.flatten()
         for i in range(self.batch_size):
             axs[i].imshow(images[i])
-            axs[i].set_title(labels[i])
+            if yb:
+                axs[i].set_title(labels[i])
         plt.tight_layout()
         return fig, axs
