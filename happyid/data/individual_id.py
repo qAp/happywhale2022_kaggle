@@ -132,11 +132,14 @@ class IndividualID(BaseDataModule):
             dl = iter(self.train_dataloader())
         
         for _ in range(np.random.randint(low=1, high=11)):
-            xb, *yb = next(dl)
+            if split in ['train', 'valid']:
+                xb, yb = next(dl)
+            else:
+                xb = next(dl)
 
         images = STD_IMG * xb.numpy() + MEAN_IMG
         images = (255 * images).astype('uint8')
-        if yb:
+        if split in ['train', 'valid']:
             labels = ID_ENCODER.inverse_transform(yb[0].squeeze().numpy())
 
         ncols = 4
@@ -146,7 +149,7 @@ class IndividualID(BaseDataModule):
         axs = axs.flatten()
         for i in range(self.batch_size):
             axs[i].imshow(images[i])
-            if yb:
+            if split in ['train', 'valid']:
                 axs[i].set_title(labels[i])
         plt.tight_layout()
         return fig, axs
