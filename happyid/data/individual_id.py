@@ -28,7 +28,11 @@ class IndividualIDDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, i):
         r = self.df.iloc[i]
-        pth = f'{r.dir_img}/{r.image}'
+        
+        if 'dir_img' in r:
+            pth = f'{r.dir_img}/{r.image}'
+        else:
+            pth = f'{DIR_BASE}/test_images/{r.image}'
 
         img = cv2.imread(pth)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
