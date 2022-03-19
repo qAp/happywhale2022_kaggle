@@ -28,7 +28,7 @@ class IndividualIDDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, i):
         r = self.df.iloc[i]
-        
+
         if 'dir_img' in r:
             pth = f'{r.dir_img}/{r.image}'
         else:
@@ -137,7 +137,7 @@ class IndividualID(BaseDataModule):
         images = STD_IMG * xb.numpy() + MEAN_IMG
         images = (255 * images).astype('uint8')
         if yb:
-            labels = ID_ENCODER.inverse_transform(yb.squeeze().numpy())
+            labels = ID_ENCODER.inverse_transform(yb[0].squeeze().numpy())
 
         ncols = 4
         nrows = (self.batch_size - 1) // ncols + 1
