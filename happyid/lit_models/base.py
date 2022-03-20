@@ -89,10 +89,11 @@ class BaseLitModel(pl.LightningModule):
         self.log('valid_loss', loss,
                  on_step=False, on_epoch=True, prog_bar=True)
 
+    @torch.no_grad()
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         xb = batch
         xb = xb.permute(0, 3, 1, 2)
-        return self.model(xb, return_embed=self.return_embed)
+        return self.model(xb, return_emb=self.return_embed)
 
 
 
