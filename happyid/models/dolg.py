@@ -175,7 +175,7 @@ class DOLG(nn.Module):
         self.stride = self.args.get('stride', STRIDE)
         self.pool = self.args.get('pool', POOL)
         self.gem_p_trainable = self.args.get(
-            'gem_p_trainable', GEM_P_TRAINABLE)
+            'gem_p_trainable', False)
         self.embedding_size = self.args.get('embedding_size', EMBEDDING_SIZE)
         self.dilations = self.args.get('dilations', DILATIONS)
         self.freeze = self.args.get('freeze', FREEZE)
