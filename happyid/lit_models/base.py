@@ -11,6 +11,7 @@ OPTIMIZER = 'Adam'
 LOSS = 'cross_entropy'
 METRIC = 'mean_average_precision_5'
 ONE_CYCLE_MAX_STEPS = 20
+RETURN_EMBED = False
 
 
 class BaseLitModel(pl.LightningModule):
@@ -33,7 +34,7 @@ class BaseLitModel(pl.LightningModule):
         self.one_cycle_max_steps = self.model.data_config.get(
             'total_steps', ONE_CYCLE_MAX_STEPS)
 
-        self.return_embed = self.args.get('return_embed', False)
+        self.return_embed = self.args.get('return_embed', RETURN_EMBED)
 
     @staticmethod
     def add_argparse_args(parser):
@@ -44,7 +45,7 @@ class BaseLitModel(pl.LightningModule):
         add('--optimizer', type=str, default=OPTIMIZER)
         add('--one_cycle_max_lr', type=float, default=None)
         add('--one_cycle_max_steps', type=int, default=ONE_CYCLE_MAX_STEPS)
-        add('--return_embed', action='store_true', type=bool, default=False)
+        add('--return_embed', type=bool, default=RETURN_EMBED)
 
     def forward(self, x):
         return self.model(x)
