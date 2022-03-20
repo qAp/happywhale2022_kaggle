@@ -55,6 +55,7 @@ class IndividualIDDataset(torch.utils.data.Dataset):
 META_DATA_PATH = '/kaggle/input/happyid-train-meta'
 FOLD = 0
 IMAGE_SIZE = 64
+INFER_SUBSET = None
 
 
 class IndividualID(BaseDataModule):
@@ -67,6 +68,7 @@ class IndividualID(BaseDataModule):
         self.fold = self.args.get('fold', FOLD)
         self.image_size = self.args.get('image_size', IMAGE_SIZE)
         self.aug = self.args.get('aug', False)
+        self.infer_subset = self.args.get('infer_subset', INFER_SUBSET)
 
         if self.aug:
             self.train_tfms = aug_tfms(self.image_size)
@@ -83,6 +85,8 @@ class IndividualID(BaseDataModule):
         add('--fold', type=int, default=FOLD)
         add('--image_size', type=int, default=IMAGE_SIZE)
         add('--aug', action='store_true', default=False)
+        add('--infer_subset', type=int, default=INFER_SUBSET, 
+            help='Infer on subset of submission samples')
 
     def setup(self):
         train_df = pd.read_csv(
@@ -107,7 +111,13 @@ class IndividualID(BaseDataModule):
             transform=albu.Compose(self.valid_tfms)
         )
 
-        test_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
+        ss_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
+        if self.infer_subset is not None:
+            assert self.infer_subset <= len(test_df)
+            test_df = ss_df.sample(self.infer_subset, replace=False)
+        else:
+            test_df = ss_df
+
         self.test_ds = IndividualIDDataset(
             test_df, transform=albu.Compose(self.test_tfms)
         )
