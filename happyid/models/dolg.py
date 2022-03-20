@@ -193,7 +193,7 @@ class DOLG(nn.Module):
         _add('--in_channels', type=int, default=IN_CHANNELS)
         _add('--stride', type=int, nargs='+', default=STRIDE)
         _add('--pool', type=str, default=POOL)
-        _add('--gem_p_trainable', type=bool, default=GEM_P_TRAINABLE)
+        _add('--gem_p_trainable', action='store_true', default=False)
         _add('--embedding_size', type=int, default=EMBEDDING_SIZE)
         _add('--dilations', type=int, nargs='+', default=DILATIONS)
         _add('--freeze', type=str, nargs='+', default=FREEZE)
