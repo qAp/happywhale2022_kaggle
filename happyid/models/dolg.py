@@ -170,7 +170,7 @@ class DOLG(nn.Module):
 
         self.n_classes = NUM_INDIVIDUALS
         self.backbone_name = self.args.get('backbone_name', BACKBONE_NAME)
-        self.pretrained = self.args.get('pretrained', PRETRAINED)
+        self.pretrained = self.args.get('pretrained', False)
         self.in_channels = self.args.get('in_channels', IN_CHANNELS)
         self.stride = self.args.get('stride', STRIDE)
         self.pool = self.args.get('pool', POOL)
@@ -189,7 +189,7 @@ class DOLG(nn.Module):
     def add_argparse_args(parser):
         _add = parser.add_argument
         _add('--backbone_name', type=str, default=BACKBONE_NAME)
-        _add('--pretrained', type=bool, default=PRETRAINED)
+        _add('--pretrained', action='store_true', default=False)
         _add('--in_channels', type=int, default=IN_CHANNELS)
         _add('--stride', type=int, nargs='+', default=STRIDE)
         _add('--pool', type=str, default=POOL)
