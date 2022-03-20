@@ -33,7 +33,7 @@ class BaseLitModel(pl.LightningModule):
         self.one_cycle_max_steps = self.model.data_config.get(
             'total_steps', ONE_CYCLE_MAX_STEPS)
 
-        self.return_embed = self.args.get('return_embed', False)
+        self.return_emb = self.args.get('return_emb', False)
 
     @staticmethod
     def add_argparse_args(parser):
@@ -44,7 +44,7 @@ class BaseLitModel(pl.LightningModule):
         add('--optimizer', type=str, default=OPTIMIZER)
         add('--one_cycle_max_lr', type=float, default=None)
         add('--one_cycle_max_steps', type=int, default=ONE_CYCLE_MAX_STEPS)
-        add('--return_embed', action='store_true', default=False)
+        add('--return_emb', action='store_true', default=False)
 
     def forward(self, x):
         return self.model(x)
@@ -93,7 +93,7 @@ class BaseLitModel(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         xb = batch
         xb = xb.permute(0, 3, 1, 2)
-        return self.model(xb, return_emb=self.return_embed)
+        return self.model(xb, return_emb=self.return_emb)
 
 
 
