@@ -113,7 +113,7 @@ class IndividualID(BaseDataModule):
 
         ss_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
         if self.infer_subset is not None:
-            assert self.infer_subset <= len(test_df)
+            assert self.infer_subset <= len(ss_df)
             test_df = ss_df.sample(self.infer_subset, replace=False)
         else:
             test_df = ss_df
