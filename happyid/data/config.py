@@ -12,4 +12,6 @@ STD_IMG = np.array([0.229, 0.224, 0.225], dtype='float32')
 
 ID_ENCODER = joblib.load('/kaggle/input/happyid-label-encoding/label_encoder')
 
+NUM_FOLD = 5
+
 
