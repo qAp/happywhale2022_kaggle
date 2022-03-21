@@ -92,7 +92,6 @@ class BaseLitModel(pl.LightningModule):
     @torch.no_grad()
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         xb, *_ = batch
-        print(xb)
         xb = xb.permute(0, 3, 1, 2)
         return self.model(xb, return_emb=self.return_emb)
 
