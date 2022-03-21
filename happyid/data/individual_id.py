@@ -47,9 +47,10 @@ class IndividualIDDataset(torch.utils.data.Dataset):
 
         if 'individual_id' in r:
             label = ID_ENCODER.transform([r['individual_id']])
-            return img, label
         else:
-            return img, -1
+            label = np.array([-1])
+            
+        return img, label
 
 
 META_DATA_PATH = '/kaggle/input/happyid-train-meta'
