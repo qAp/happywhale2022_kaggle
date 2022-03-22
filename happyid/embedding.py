@@ -1,4 +1,5 @@
 import os
+import pathlib
 import shutil
 import albumentations as albu
 import numpy as np, pandas as pd
@@ -69,11 +70,8 @@ def main():
     preds = torch.cat(preds, dim=0)
     preds = preds.cpu().numpy()
 
-    if not os.path.exists(args.dir_out):
-        os.makedirs(args.dir_out, exist_ok=True)
-        
-    np.savez_compressed(os.path.join(args.dir_out, 'emb'), preds)
-
+    pathlib.Path(args.dir_out).mkdir(exist_ok=True, parents=True)
+    np.savez_compressed(f'{args.dir_out}/emb', preds)
     shutil.copy(args.emb_meta_path, args.dir_out)
 
 
