@@ -71,7 +71,8 @@ def main():
     preds = preds.cpu().numpy()
 
     pathlib.Path(args.dir_out).mkdir(exist_ok=True, parents=True)
-    np.savez_compressed(f'{args.dir_out}/emb', preds)
+    np.savez_compressed(f'{args.dir_out}/emb', 
+                        embed=preds)
     shutil.copy(args.emb_meta_path, args.dir_out)
 
 
