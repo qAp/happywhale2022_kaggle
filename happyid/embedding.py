@@ -27,7 +27,7 @@ class EmbIndividualID(IndividualID):
 
     def setup(self):
         self.train_ds = IndividualIDDataset(
-            df=pd.read_csv(self.emb_meta_path).iloc[:1000],
+            df=pd.read_csv(self.emb_meta_path),
             transform=albu.Compose(self.train_tfms))
 
         self.valid_ds = None
