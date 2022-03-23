@@ -4,6 +4,7 @@ DOLG EfficientNet by Christof Henkel.
 https://github.com/ChristofHenkel/kaggle-landmark-2021-1st-place/blob/main/models/ch_mdl_dolg_efficientnet.py
 '''
 
+import ast
 import timm
 from torch import nn
 import torch
@@ -152,13 +153,13 @@ class OrthogonalFusion(nn.Module):
 
 
 DILATIONS = [3, 6, 9]
-PRETRAINED = True
+PRETRAINED = 'True'
 IN_CHANNELS = 3
 BACKBONE_NAME = 'resnet18'
 STRIDE = (1, 1)
 EMBEDDING_SIZE = 512
 POOL = 'gem'
-GEM_P_TRAINABLE = True
+GEM_P_TRAINABLE = 'True'
 FREEZE = []
 
 class DOLG(nn.Module):
@@ -170,12 +171,13 @@ class DOLG(nn.Module):
 
         self.n_classes = NUM_INDIVIDUALS
         self.backbone_name = self.args.get('backbone_name', BACKBONE_NAME)
-        self.pretrained = self.args.get('pretrained', False)
+        self.pretrained = self.args.get(
+            'pretrained', ast.literal_eval(PRETRAINED))
         self.in_channels = self.args.get('in_channels', IN_CHANNELS)
         self.stride = self.args.get('stride', STRIDE)
         self.pool = self.args.get('pool', POOL)
         self.gem_p_trainable = self.args.get(
-            'gem_p_trainable', False)
+            'gem_p_trainable', ast.literal_eval(GEM_P_TRAINABLE))
         self.embedding_size = self.args.get('embedding_size', EMBEDDING_SIZE)
         self.dilations = self.args.get('dilations', DILATIONS)
         self.freeze = self.args.get('freeze', FREEZE)
@@ -189,11 +191,12 @@ class DOLG(nn.Module):
     def add_argparse_args(parser):
         _add = parser.add_argument
         _add('--backbone_name', type=str, default=BACKBONE_NAME)
-        _add('--pretrained', action='store_true', default=False)
+        _add('--pretrained', type=ast.literal_eval, default=PRETRAINED)
         _add('--in_channels', type=int, default=IN_CHANNELS)
         _add('--stride', type=int, nargs='+', default=STRIDE)
         _add('--pool', type=str, default=POOL)
-        _add('--gem_p_trainable', action='store_true', default=False)
+        _add('--gem_p_trainable', type=ast.literal_eval, 
+             default=GEM_P_TRAINABLE)
         _add('--embedding_size', type=int, default=EMBEDDING_SIZE)
         _add('--dilations', type=int, nargs='+', default=DILATIONS)
         _add('--freeze', type=str, nargs='+', default=FREEZE)
