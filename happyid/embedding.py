@@ -11,42 +11,17 @@ from happyid.data.transforms import base_tfms
 from happyid.utils import setup_parser, import_class
 
 
-def _setup_parser():
-    parser = setup_parser()
-    parser.add_argument('--emb_meta_path', type=str, default='train.csv')
-    return parser
 
 
-class EmbIndividualID(IndividualID):
-    def __init__(self, args=None):
-        super().__init__(args)
-        self.args = vars(args) if args is not None else {}
-        
-        self.emb_meta_path = self.args.get('emb_meta_path')
-        self.train_tfms = base_tfms(self.image_size)
-
-    def setup(self):
-        self.train_ds = IndividualIDDataset(
-            df=pd.read_csv(self.emb_meta_path),
-            transform=albu.Compose(self.train_tfms))
-
-        self.valid_ds = None
-        self.test_ds = None
-
-    def train_dataloader(self):
-        return torch.utils.data.DataLoader(
-            dataset=self.train_ds,
-            batch_size=self.batch_size,
-            shuffle=False,
-            num_workers=self.num_workers,
-            pin_memory=self.on_gpu)
 
 
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
 
-    data = EmbIndividualID(args)
+    assert args.data_class in ('EmbIndividualID', 'EmbNewIndividual')
+    data_class = import_class(f'happyid.data.{args.data_class}')
+    data = data_class(args)
     data.prepare_data()
     data.setup()
     # fig, axs = data.show_batch(split='train')
