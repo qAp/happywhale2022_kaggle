@@ -16,7 +16,7 @@ from happyid.utils import setup_parser, import_class
 
 
 def main():
-    parser = _setup_parser()
+    parser = setup_parser()
     args = parser.parse_args()
 
     assert args.data_class in ('EmbIndividualID', 'EmbNewIndividual')
