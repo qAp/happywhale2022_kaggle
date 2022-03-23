@@ -46,9 +46,6 @@ def main():
     parser = _setup_parser()
     args = parser.parse_args()
 
-    args.gem_p_trainable = True
-    args.return_emb = True
-
     data = EmbIndividualID(args)
     data.prepare_data()
     data.setup()
