@@ -57,7 +57,7 @@ class EmbNewIndividual(EmbIndividualID):
         df.drop('individual_id', axis=1, inplace=True)
 
         self.train_ds = IndividualIDDataset(
-            df,
+            df.iloc[:100],
             transform=albu.Compose(self.train_tfms))
 
         self.valid_ds = None
