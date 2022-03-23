@@ -48,7 +48,7 @@ class EmbNewIndividual(EmbIndividualID):
 
     @staticmethod
     def add_argparse_args(parser):
-        super().add_argparse_args(parser)
+        EmbIndividualID.add_argparse_args(parser)
         parser.add_argument('--image_dir', type=str, default='train_images')
 
     def setup(self):
