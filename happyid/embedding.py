@@ -36,7 +36,7 @@ def main():
 
     trainer = pl.Trainer.from_argparse_args(args)
     preds = trainer.predict(model=lit_model, 
-                            dataloaders=data.train_dataloader())
+                            dataloaders=data.test_dataloader())
     preds = torch.cat(preds, dim=0)
     preds = preds.cpu().numpy()
 
