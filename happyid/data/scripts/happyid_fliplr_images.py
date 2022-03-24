@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 
 
-df = pd.read_csv(f'{DIR_BASE}/train.csv')
+df = pd.read_csv(f'{DIR_BASE}/train.csv').iloc[:1_000]
 
-# Take half of the images because /kaggle/working holds only 20 GB.
+# Take a fraction of the images because /kaggle/working holds only 20 GB.
 vc = df.individual_id.value_counts()
 weights = 1 / vc
 weights = df.individual_id.map(weights.to_dict()).values
@@ -27,6 +27,7 @@ os.makedirs(dir_out, exist_ok=True)
 
 img_id_list = []
 individual_id_list = []
+
 
 for _, row in tqdm(df.iterrows(), total=len(df)):
     img = cv2.imread(f'{DIR_BASE}/train_images/{row.image}')
