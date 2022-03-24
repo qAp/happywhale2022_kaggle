@@ -19,12 +19,10 @@ from happyid.retrieval import retrieval_predict
 def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
-    _add('--ref_emb_path', type=str, default='emb.npz',
-        help='Embeddings of existing images')
-    _add('--ref_emb_meta_path', type=str, default='train.csv',
-        help='Embedding metat data.')
-    _add('--folds_ref_emb_meta_path', nargs='+', type=str,
-        default=5*['train.csv'], help='Embedding metat data for the 5 folds.')
+    _add('--folds_knownid_emb_path', nargs='+', type=str, 
+         default=5*['emb.npz'])
+    _add('--folds_knownid_emb_meta_path', nargs='+', type=str,
+         default=5*['train.csv'])
     _add('--folds_model_class', nargs='+', type=str, default=5*['DOLG'])
     _add('--folds_backbone_name', nargs='+', type=str, default=5*['resnet18'])
     _add('--folds_checkpoint_path', nargs='+', type=str,
@@ -37,30 +35,26 @@ def main():
     parser = _setup_parser()
     args = parser.parse_args()
 
-    args.gem_p_trainable = True
-    args.return_emb = True
-
     assert (NUM_FOLD
+            == len(args.folds_knownid_emb_path)
+            == len(args.folds_knownid_emb_meta_path)
             == len(args.folds_model_class)
             == len(args.folds_backbone_name)
             == len(args.folds_checkpoint_path)
-            == len(args.folds_ref_emb_meta_path)
             )
-
-    loaded = np.load(args.ref_emb_path)
 
     folds_score = []
 
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
-        args.ref_emb_meta_path = args.folds_ref_emb_meta_path[ifold]
         args.model_class = args.folds_model_class[ifold]
         args.backbone_name = args.folds_backbone_name[ifold]
         args.load_from_checkpoint = args.folds_checkpoint_path[ifold]
 
-        emb_df = pd.read_csv(args.ref_emb_meta_path)
-        ref_emb = torch.from_numpy(loaded['embed'][emb_df['idx_embed']])
+        emb_df = pd.read_csv(args.folds_knownid_emb_meta_path[ifold])
+        loaded = np.load(args.folds_knownid_emb_path[ifold])
+        ref_emb = torch.from_numpy(loaded['embed'])
 
         data_class = import_class(f'happyid.data.{args.data_class}')
         model_class = import_class(f'happyid.models.{args.model_class}')
