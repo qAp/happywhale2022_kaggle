@@ -43,7 +43,8 @@ def main():
     pathlib.Path(args.dir_out).mkdir(exist_ok=True, parents=True)
     np.savez_compressed(f'{args.dir_out}/emb', 
                         embed=preds)
-    shutil.copy(args.emb_meta_path, args.dir_out)
+
+    data.test_ds.df.to_csv(f'{args.dir_out}/emb.csv', index=False)
 
 
 if __name__ == '__main__':
