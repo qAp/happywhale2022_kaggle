@@ -16,7 +16,7 @@ df = pd.read_csv(f'{DIR_BASE}/train.csv')
 vc = df.individual_id.value_counts()
 weights = 1 / vc
 weights = df.individual_id.map(weights.to_dict()).values
-df = df.sample(n=35_000, weights=weights, random_state=42)  
+df = df.sample(n=20_000, weights=weights, random_state=42)  
 
 existing_img_ids = list(df.image.str[:-4].values)
 existing_individual_ids = list(df.individual_id.values)
