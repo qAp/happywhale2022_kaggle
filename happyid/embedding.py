@@ -18,7 +18,6 @@ def main():
     parser = setup_parser()
     args = parser.parse_args()
 
-    assert args.data_class in ('EmbIndividualID', 'EmbNewIndividual')
     data_class = import_class(f'happyid.data.{args.data_class}')
     data = data_class(args)
     data.prepare_data()
