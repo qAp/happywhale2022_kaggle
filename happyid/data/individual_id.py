@@ -29,11 +29,7 @@ class IndividualIDDataset(torch.utils.data.Dataset):
     def __getitem__(self, i):
         r = self.df.iloc[i]
 
-        if 'dir_img' in r:
-            pth = f'{r.dir_img}/{r.image}'
-        else:
-            pth = f'{DIR_BASE}/test_images/{r.image}'
-
+        pth = f'{r.dir_img}/{r.image}'
         img = cv2.imread(pth)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
@@ -46,17 +42,22 @@ class IndividualIDDataset(torch.utils.data.Dataset):
         img = (img - MEAN_IMG) / STD_IMG
 
         if 'individual_id' in r:
-            label = ID_ENCODER.transform([r['individual_id']])
+            if r['individual_id'] in ID_ENCODER.classes_:
+                label = ID_ENCODER.transform([r['individual_id']])
+            else:
+                label = np.array([-1])
         else:
             label = np.array([-1])
 
         return img, label
 
 
+
 META_DATA_PATH = '/kaggle/input/happyid-train-meta'
 FOLD = 0
 IMAGE_SIZE = 64
 INFER_SUBSET = None
+IMAGE_DIR = None
 
 
 class IndividualID(BaseDataModule):
@@ -70,6 +71,7 @@ class IndividualID(BaseDataModule):
         self.image_size = self.args.get('image_size', IMAGE_SIZE)
         self.aug = self.args.get('aug', False)
         self.infer_subset = self.args.get('infer_subset', INFER_SUBSET)
+        self.image_dir = self.args.get('image_dir', IMAGE_DIR)
 
         if self.aug:
             self.train_tfms = aug_tfms(self.image_size)
@@ -88,6 +90,7 @@ class IndividualID(BaseDataModule):
         add('--aug', action='store_true', default=False)
         add('--infer_subset', type=int, default=INFER_SUBSET, 
             help='Infer on subset of submission samples')
+        add('--image_dir', type=str, default=IMAGE_DIR)
 
     def setup(self):
         train_df = pd.read_csv(
