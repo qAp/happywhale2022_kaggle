@@ -15,7 +15,7 @@ class EmbeddedIndividual(IndividualID):
         self.args = vars(args) if args is not None else {}
 
     def setup(self):
-        df = pd.read_csv(self.meta_data_path)
+        df = pd.read_csv(self.meta_data_path).iloc[:100]
 
         if self.image_dir is not None:
             df['dir_img'] = self.image_dir
