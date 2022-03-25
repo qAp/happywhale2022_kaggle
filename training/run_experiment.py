@@ -15,8 +15,6 @@ def main():
     parser = setup_parser()
 
     args = parser.parse_args()
-    args.gem_p_trainable = True
-    args.pretrained = True
     print(args)
     
     data_class = import_class(f'happyid.data.{args.data_class}')
