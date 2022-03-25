@@ -48,6 +48,7 @@ def main():
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
+        args.fold = ifold
         args.model_class = args.folds_model_class[ifold]
         args.backbone_name = args.folds_backbone_name[ifold]
         args.load_from_checkpoint = args.folds_checkpoint_path[ifold]
