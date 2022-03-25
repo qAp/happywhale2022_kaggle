@@ -90,6 +90,7 @@ def main():
         args.load_from_checkpoint = args.folds_checkpoint_path[ifold]
 
         ref_emb, emb_df = _get_ref_emb(args)
+        ref_emb = torch.from_numpy(ref_emb)
 
         data_class = import_class(f'happyid.data.{args.data_class}')
         model_class = import_class(f'happyid.models.{args.model_class}')
