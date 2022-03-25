@@ -27,13 +27,6 @@ def make_cv_folds(df, n_splits=5, random_state=42):
         df_train = df.loc[train_index].reset_index()
         df_valid = df.loc[valid_index].reset_index()
 
-        valid_id_isin_train = np.isin(
-            df_valid.individual_id.values, df_train.individual_id.unique()
-            )
-        df_valid['individual_id'] = np.where(
-            valid_id_isin_train,
-            df_valid.individual_id.values, 'new_individual')
-
         df_train = df_train.rename(columns={'index': 'idx_embed'})
         df_valid = df_valid.rename(columns={'index': 'idx_embed'})
 

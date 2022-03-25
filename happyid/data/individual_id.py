@@ -167,3 +167,54 @@ class IndividualID(BaseDataModule):
                 axs[i].set_title(labels[i])
         plt.tight_layout()
         return fig, axs
+
+
+class RetrievalCVIndividual(IndividualID):
+    def setup(self):
+        train_df = pd.read_csv(
+            f'{self.meta_data_path}/train_fold{self.fold}.csv')
+
+        valid_df = pd.read_csv(
+            f'{self.meta_data_path}/valid_fold{self.fold}.csv')
+
+        valid_id_isin_train = np.isin(
+            valid_df.individual_id.values, train_df.individual_id.unique()
+        )
+        valid_df['individual_id'] = np.where(
+            valid_id_isin_train,
+            valid_df.individual_id.values, 'new_individual')
+
+        self.train_ds = None
+        self.test_ds = None
+        self.valid_ds = IndividualIDDataset(
+            valid_df,
+            transform=albu.Compose(self.valid_tfms)
+        )
+
+
+class EmbeddedIndividual(IndividualID):
+    def __init__(self, args=None):
+        super().__init__(args)
+        self.args = vars(args) if args is not None else {}
+
+    def setup(self):
+        df = pd.read_csv(self.meta_data_path)
+
+        if self.image_dir is not None:
+            df['dir_img'] = self.image_dir
+        else:
+            assert 'dir_img' in df
+
+        self.train_ds = None
+        self.valid_ds = None
+
+        self.test_ds = IndividualIDDataset(
+            df, transform=albu.Compose(self.test_tfms))
+
+    def test_dataloader(self):
+        return torch.utils.data.DataLoader(
+            dataset=self.test_ds,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+            pin_memory=self.on_gpu)
