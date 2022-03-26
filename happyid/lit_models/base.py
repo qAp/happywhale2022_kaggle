@@ -8,7 +8,7 @@ from happyid.utils import import_class
 
 LR = 1e-4
 OPTIMIZER = 'Adam'
-LOSS = 'cross_entropy'
+LOSS = 'ArcFaceLoss'
 METRIC = 'mean_average_precision_5'
 ONE_CYCLE_MAX_STEPS = 20
 RETURN_EMB = 'True'
