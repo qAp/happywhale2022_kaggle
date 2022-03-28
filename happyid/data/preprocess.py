@@ -67,6 +67,63 @@ def make_train_subset_meta():
     make_cv_folds(subset_df, n_splits=5, random_state=None)
 
 
+def make_tvet_meta(min_id_vc=40, valid_pct=.1):
+    '''
+    TVET := train, valid, extra, text.
+    
+    This splits the samples in df into 4 splits: train, valid, extra, and test.
+    Also fits label encoder on the train split.
+    All splits and label encoder are saved to /kaggle/working.
+    
+    Args:
+        df (pd.DataFrame): meta data
+        min_id_cv (int): Minimum individual_id value count above which the individual_id
+            will be included during training (the union of train and valid splits).
+        valid_pct (float): fraction of the union of train and valid splits that the valid
+            split takes up.
+    '''
+    df = pd.read_csv(f'{DIR_BASE}/train.csv')
+
+    kf = StratifiedKFold(n_splits=5)
+
+    folds_summary = []
+    for fold, (bulk_idx, test_idx) in enumerate(kf.split(X=df, y=df.individual_id)):
+
+        bulk_df = df.iloc[bulk_idx]
+        test_df = df.iloc[test_idx]
+
+        vc = bulk_df.individual_id.value_counts()
+        id_in_subset = vc > min_id_vc
+        image_in_subset = bulk_df.individual_id.isin(vc.index[id_in_subset])
+
+        subset_df = bulk_df[image_in_subset]
+        extra_df = bulk_df[~image_in_subset]
+
+        valid_df = subset_df.sample(frac=valid_pct, replace=False)
+        train_df = subset_df[~subset_df.index.isin(valid_df.index)]
+
+        label_encoder = LabelEncoder()
+        label_encoder.fit(train_df.individual_id)
+
+        train_df.to_csv(f'/kaggle/working/train_fold{fold}.csv', index=False)
+        valid_df.to_csv(f'/kaggle/working/valid_fold{fold}.csv', index=False)
+        extra_df.to_csv(f'/kaggle/working/extra_fold{fold}.csv', index=False)
+        test_df.to_csv(f'/kaggle/working/test_fold{fold}.csv', index=False)
+        joblib.dump(label_encoder, f'/kaggle/working/label_encoder_fold{fold}')
+
+        summary = pd.concat(
+            [train_df.describe(),
+             valid_df.describe(),
+             extra_df.describe(),
+             test_df.describe()],
+            axis=1, keys=['train', 'valid', 'extra', 'test']
+        )
+        folds_summary.append(summary)
+
+    folds_summary = pd.concat(folds_summary, axis=0, keys=range(5))
+    display(folds_summary)
+
+
 @torch.no_grad()
 def image_embedding(model, jpg='image.jpg', image_size=128):
     model.eval()
