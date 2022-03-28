@@ -2,6 +2,7 @@ from IPython.display import display
 import pandas as pd
 import torch
 import cv2
+from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
 from happyid.data.config import *
 
@@ -40,6 +41,32 @@ def make_cv_folds(df, n_splits=5, random_state=42):
     )
 
 
+def make_train_subset_meta():
+    df = pd.read_csv(f'{DIR_BASE}/train.csv')
+
+    vc = df.individual_id.value_counts()
+
+    min_vc = 50
+
+    id_isin_subset = vc > min_vc
+
+    print('Original number of ids:', len(vc))
+    print('Subset number of ids:', id_isin_subset.sum())
+
+    image_isin_subset = df.individual_id.isin(vc.index[id_isin_subset])
+
+    print('Original number of images:', len(df))
+    print('Subset number of images:', image_isin_subset.sum())
+
+    subset_df = df[image_isin_subset].reset_index(drop=True)
+
+    label_encoder = LabelEncoder()
+    label_encoder.fit(subset_df.individual_id.values)
+    joblib.dump(label_encoder, '/kaggle/working/label_encoder')
+
+    make_cv_folds(subset_df, n_splits=5, random_state=None)
+
+
 @torch.no_grad()
 def image_embedding(model, jpg='image.jpg', image_size=128):
     model.eval()
@@ -59,6 +86,9 @@ def image_embedding(model, jpg='image.jpg', image_size=128):
     logits = model(xb)
 
     return logits[0]
+
+
+
 
 
 
