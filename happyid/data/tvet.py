@@ -42,6 +42,9 @@ class TvetRetrievalCVIndividual(IndividualID):
             transform=albu.Compose(self.valid_tfms),
             id_encoder=id_encoder)
 
+    def config(self):
+        return {'num_class': len(self.valid_ds.id_encoder.classes_)}
+
 
 class TvetEmbeddedIndividual(IndividualID):
     def setup(self):
@@ -76,3 +79,6 @@ class TvetEmbeddedIndividual(IndividualID):
             shuffle=False,
             num_workers=self.num_workers,
             pin_memory=self.on_gpu)
+
+    def config(self):
+        return {'num_class': len(self.test_ds.id_encoder.classes_)}
