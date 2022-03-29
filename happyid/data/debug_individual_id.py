@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import torch
+from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
 import albumentations as albu
