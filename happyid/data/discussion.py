@@ -9,7 +9,6 @@ from typing import Optional
 from typing import Tuple
 from pathlib import Path
 
-import faiss
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
@@ -47,10 +46,10 @@ IDS_WITHOUT_BACKFIN_PATH = INPUT_DIR / \
 N_SPLITS = 5
 
 ENCODER_CLASSES_PATH = OUTPUT_DIR / "encoder_classes.npy"
-TEST_CSV_PATH = OUTPUT_DIR / "test.csv"
-TRAIN_CSV_ENCODED_FOLDED_PATH = OUTPUT_DIR / "train_encoded_folded.csv"
+
 CHECKPOINTS_DIR = OUTPUT_DIR / "checkpoints"
 SUBMISSION_CSV_PATH = OUTPUT_DIR / "submission.csv"
+
 
 DEBUG = False
 
@@ -87,6 +86,14 @@ class HappyWhaleDataset(Dataset):
         return len(self.df)
 
 
+TRAIN_CSV_ENCODED_FOLDED_PATH = OUTPUT_DIR / "train_encoded_folded.csv"
+TEST_CSV_PATH = OUTPUT_DIR / "test.csv"
+VAL_FOLD = 0
+IMAGE_SIZE = 256
+BATCH_SIZE = 64
+NUM_WORKERS = 2
+K = 50
+
 class LitDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -108,6 +115,17 @@ class LitDataModule(pl.LightningDataModule):
             input_size=(self.hparams.image_size, self.hparams.image_size),
             crop_pct=1.0,
         )
+
+    @staticmethod
+    def add_argparse_args(parser):
+        _add = parser.add_argument
+        _add('--train_csv_encoded_folded', type=str,
+             default=str(TRAIN_CSV_ENCODED_FOLDED_PATH))
+        _add('--test_csv', type=str, default=str(TEST_CSV_PATH))
+        _add('--val_fold', type=float, default=VAL_FOLD)
+        _add('--image_size', type=int, default=IMAGE_SIZE)
+        _add('--batch_size', type=int, default=BATCH_SIZE)
+        _add('--num_workers', type=int, default=NUM_WORKERS)
 
     def prepare_data(self):
         train_df = pd.read_csv(TRAIN_CSV_PATH)
