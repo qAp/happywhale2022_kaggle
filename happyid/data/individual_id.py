@@ -14,14 +14,13 @@ from happyid.data.base_data_module import BaseDataModule
 from happyid.data.transforms import base_tfms, aug_tfms
 
 
-ID_ENCODER = joblib.load('/kaggle/input/happyid-label-encoding/label_encoder')
-
 class IndividualIDDataset(torch.utils.data.Dataset):
-    def __init__(self, df, transform=None):
+    def __init__(self, df, transform=None, id_encoder=None):
         super().__init__()
 
         self.df = df
         self.transform = transform
+        self.id_encoder
 
     def __len__(self):
         return len(self.df)
@@ -42,8 +41,8 @@ class IndividualIDDataset(torch.utils.data.Dataset):
         img = (img - MEAN_IMG) / STD_IMG
 
         if 'individual_id' in r:
-            if r['individual_id'] in ID_ENCODER.classes_:
-                label = ID_ENCODER.transform([r['individual_id']])
+            if r['individual_id'] in self.id_encoder.classes_:
+                label = self.id_encoder.transform([r['individual_id']])
             else:
                 label = np.array([-1])
         else:
@@ -58,6 +57,7 @@ FOLD = 0
 IMAGE_SIZE = 64
 INFER_SUBSET = None
 IMAGE_DIR = None
+ID_ENCODER_PATH = '/kaggle/input/happyid-label-encoding/label_encoder'
 
 
 class IndividualID(BaseDataModule):
@@ -72,6 +72,7 @@ class IndividualID(BaseDataModule):
         self.aug = self.args.get('aug', False)
         self.infer_subset = self.args.get('infer_subset', INFER_SUBSET)
         self.image_dir = self.args.get('image_dir', IMAGE_DIR)
+        self.id_encoder_path = self.args.get('id_encoder_path', ID_ENCODER_PATH)
 
         if self.aug:
             self.train_tfms = aug_tfms(self.image_size)
@@ -91,21 +92,28 @@ class IndividualID(BaseDataModule):
         add('--infer_subset', type=int, default=INFER_SUBSET, 
             help='Infer on subset of submission samples')
         add('--image_dir', type=str, default=IMAGE_DIR)
+        add('--id_encoder_path', type=str, default=ID_ENCODER_PATH)
+
+    def config(self):
+        config = super().config()
+        config.update({
+            'num_class': len(self.train_ds.label_encoder.classes_)})
+        return config
 
     def setup(self):
+        id_encoder = joblib.load(self.id_encoder_path)
+
         train_df = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
-
         if self.image_dir is not None:
             train_df['dir_img'] = self.image_dir
         else:
             assert 'dir_img' in train_df
-
         self.train_ds = IndividualIDDataset(
             train_df,
-            transform=albu.Compose(self.train_tfms)
+            transform=albu.Compose(self.train_tfms),
+            id_encoder=id_encoder
         )
-
         id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
         self.train_sampler = torch.utils.data.WeightedRandomSampler(
             weights=train_df['individual_id'].map(lambda x: id2weight[x]).values,
@@ -114,15 +122,14 @@ class IndividualID(BaseDataModule):
 
         valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
-
         if self.image_dir is not None:
             valid_df['dir_img'] = self.image_dir
         else:
             assert 'dir_img' in valid_df
-
         self.valid_ds = IndividualIDDataset(
             valid_df,
-            transform=albu.Compose(self.valid_tfms)
+            transform=albu.Compose(self.valid_tfms),
+            id_encoder=id_encoder
         )
 
         ss_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
@@ -131,7 +138,6 @@ class IndividualID(BaseDataModule):
             test_df = ss_df.sample(self.infer_subset, replace=False)
         else:
             test_df = ss_df
-
         self.test_ds = IndividualIDDataset(
             test_df, transform=albu.Compose(self.test_tfms)
         )
@@ -164,7 +170,8 @@ class IndividualID(BaseDataModule):
         images = STD_IMG * xb.numpy() + MEAN_IMG
         images = (255 * images).astype('uint8')
         if split in ['train', 'valid']:
-            labels = ID_ENCODER.inverse_transform(yb.squeeze().numpy())
+            labels = self.train_ds.id_encoder.inverse_transform(
+                yb.squeeze().numpy())
 
         ncols = 4
         nrows = (self.batch_size - 1) // ncols + 1

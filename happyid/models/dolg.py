@@ -169,7 +169,7 @@ class DOLG(nn.Module):
         self.args = vars(args) if args is not None else {}
         self.data_config = data_config
 
-        self.n_classes = NUM_INDIVIDUALS
+        self.n_classes = self.data_config['num_class']
         self.backbone_name = self.args.get('backbone_name', BACKBONE_NAME)
         self.pretrained = self.args.get(
             'pretrained', ast.literal_eval(PRETRAINED))
