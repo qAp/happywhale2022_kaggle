@@ -31,7 +31,7 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         pth = f'{r.dir_img}/{r.image}'
         # img = cv2.imread(pth)
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = np.array(Image.open(pth))
+        img = np.array(Image.open(pth).convert('RGB'))
 
         if self.transform:
             tfmd = self.transform(image=img)
