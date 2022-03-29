@@ -96,6 +96,11 @@ class IndividualID(BaseDataModule):
         train_df = pd.read_csv(
             f'{self.meta_data_path}/train_fold{self.fold}.csv')
 
+        if self.image_dir is not None:
+            train_df['dir_img'] = self.image_dir
+        else:
+            assert 'dir_img' in train_df
+
         self.train_ds = IndividualIDDataset(
             train_df,
             transform=albu.Compose(self.train_tfms)
@@ -109,6 +114,11 @@ class IndividualID(BaseDataModule):
 
         valid_df = pd.read_csv(
             f'{self.meta_data_path}/valid_fold{self.fold}.csv')
+
+        if self.image_dir is not None:
+            valid_df['dir_img'] = self.image_dir
+        else:
+            assert 'dir_img' in valid_df
 
         self.valid_ds = IndividualIDDataset(
             valid_df,
