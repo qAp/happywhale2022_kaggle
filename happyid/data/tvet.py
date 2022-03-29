@@ -68,7 +68,7 @@ class TvetEmbeddedIndividual(IndividualID):
 
         id_encoder = joblib.load(self.id_encoder_path)
         self.test_ds = IndividualIDDataset(
-            ref_df, 
+            ref_df.iloc[:1_000], 
             transform=albu.Compose(self.test_tfms), 
             id_encoder=id_encoder)
 
