@@ -20,7 +20,7 @@ class IndividualIDDataset(torch.utils.data.Dataset):
 
         self.df = df
         self.transform = transform
-        self.id_encoder
+        self.id_encoder = id_encoder
 
     def __len__(self):
         return len(self.df)
