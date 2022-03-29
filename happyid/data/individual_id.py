@@ -97,7 +97,7 @@ class IndividualID(BaseDataModule):
     def config(self):
         config = super().config()
         config.update({
-            'num_class': len(self.train_ds.label_encoder.classes_)})
+            'num_class': len(self.train_ds.id_encoder.classes_)})
         return config
 
     def setup(self):
