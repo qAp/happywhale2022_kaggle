@@ -110,7 +110,7 @@ class DebugIndividualID(BaseDataModule):
             train_df['dir_img'] = self.image_dir
         else:
             assert 'dir_img' in train_df
-        self.train_ds = IndividualIDDataset(
+        self.train_ds = DebugIndividualIDDataset(
             train_df,
             transform=albu.Compose(self.train_tfms),
             id_encoder=id_encoder
