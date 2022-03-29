@@ -26,7 +26,7 @@ def main():
 
     model_class = import_class(f'happyid.models.{args.model_class}')
     lit_model_class = import_class(f'happyid.lit_models.{args.lit_model_class}')
-    model = model_class(args=args)
+    model = model_class(data_config=data.config(), args=args)
     if args.load_from_checkpoint is not None:
         lit_model = lit_model_class.load_from_checkpoint(
             checkpoint_path=args.load_from_checkpoint, 
