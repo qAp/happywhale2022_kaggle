@@ -22,8 +22,9 @@ class BaseLitModel(pl.LightningModule):
         self.args = vars(args) if args is not None else {}
 
         loss = self.args.get('loss', LOSS)
-        loss_class = import_class(f'happyid.lit_models.losses.{loss}')
-        self.loss_fn = loss_class()
+        if loss not in ('ArcLoss1', ):
+            loss_class = import_class(f'happyid.lit_models.losses.{loss}')
+            self.loss_fn = loss_class()
 
         metric = self.args.get('metric', METRIC)
         self.metric_fn = import_class(f'happyid.lit_models.metrics.{metric}')
