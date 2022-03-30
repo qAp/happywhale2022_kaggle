@@ -113,7 +113,7 @@ class DebugIndividualID(BaseDataModule):
         self.train_ds = DebugIndividualIDDataset(
             train_df,
             # transform=albu.Compose(self.train_tfms),
-            transform=self.tranform,
+            transform=self.transform,
             id_encoder=id_encoder
         )
         id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
