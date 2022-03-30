@@ -398,7 +398,7 @@ class ArcMarginProduct1(nn.Module):
         easy_margin: bool,
         ls_eps: float,
     ):
-        super(ArcMarginProduct, self).__init__()
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.s = s
@@ -452,7 +452,7 @@ class ArcLoss1(nn.Module):
 
         self.arc = ArcMarginProduct1(in_features, out_features, s, m,
                                      easy_margin, ls_eps)
-                                     
+
         self.cross_entropy = nn.CrossEntropyLoss()
 
     def forward(self, embeddings, targets):
