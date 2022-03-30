@@ -77,6 +77,6 @@ class ArcLoss1LitModel(BaseLitModel):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        self.log('val_loss', loss, 
+        self.log('valid_loss', loss, 
                  on_step=False, on_epoch=True, prog_bar=True)
 
