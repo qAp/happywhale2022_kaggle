@@ -1,5 +1,7 @@
 
 import ast
+import torch
+from timm.optim import create_optimizer_v2
 from happyid.lit_models import BaseLitModel
 from happyid.lit_models.losses import ArcLoss1
 from happyid.models.dolg import ArcMarginProduct_subcenter
@@ -38,4 +40,20 @@ class ArcLoss1LitModel(BaseLitModel):
              default=ARC_EASY_MARGIN)
         _add('--arc_ls_eps', type=float, default=ARC_LS_EPS)
 
-    
+    def configure_optimizers(self):
+        optimizer = create_optimizer_v2(
+            self.parameters(),
+            opt=self.optimizer,
+            lr=self.lr,
+            weight_decay=1e-6,
+        )
+
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            optimizer,
+            self.lr,
+            steps_per_epoch=self.model.data_config['len_train_dl'],
+            epochs=self.model.data_config['epochs'],
+        )
+        scheduler = {"scheduler": scheduler, "interval": "step"}
+
+        return [optimizer], [scheduler]
