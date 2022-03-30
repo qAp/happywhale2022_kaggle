@@ -163,7 +163,8 @@ class DebugIndividualID(BaseDataModule):
         return torch.utils.data.DataLoader(
             dataset=self.train_ds,
             batch_size=self.batch_size,
-            sampler=self.train_sampler,
+            # sampler=self.train_sampler,
+            shuffle=True,
             num_workers=self.num_workers,
             pin_memory=self.on_gpu)
 
