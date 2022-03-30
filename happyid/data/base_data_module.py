@@ -26,16 +26,19 @@ class BaseDataModule(pl.LightningDataModule):
 
     def config(self):
         epochs = self.args.get('max_epochs')
-        len_dl = len(self.train_dataloader())
+        len_train_dl = len(self.train_dataloader())
 
         overfit_batches = self.args.get('overfit_batches')
         if overfit_batches != 0:
             if overfit_batches < 1:
-                len_dl = int(overfit_batches * len_dl)
+                len_train_dl = int(overfit_batches * len_train_dl)
             else:
-                len_dl = int(overfit_batches)
+                len_train_dl = int(overfit_batches)
 
-        return dict(total_steps=epochs * len_dl)
+        return dict(
+            epochs=epochs,
+            len_train_dl=len_train_dl,
+            total_steps=epochs * len_train_dl)
 
     def train_dataloader(self):
         return torch.utils.data.DataLoader(
