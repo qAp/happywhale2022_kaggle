@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import torch
+from timm.data.transforms_factory import create_transform
 from PIL import Image
 import cv2
 import matplotlib.pyplot as plt
@@ -31,16 +32,10 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         pth = f'{r.dir_img}/{r.image}'
         # img = cv2.imread(pth)
         # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = np.array(Image.open(pth).convert('RGB'))
+        img = Image.open(pth).convert('RGB')
 
         if self.transform:
-            tfmd = self.transform(image=img)
-            img = tfmd['image']
-
-
-        img = img.astype('float32')
-        img = img / 255
-        img = (img - MEAN_IMG) / STD_IMG
+            img = self.transform(img)
 
         if 'individual_id' in r:
             if r['individual_id'] in self.id_encoder.classes_:
@@ -49,7 +44,7 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
                 label = np.array([-1])
         else:
             label = np.array([-1])
-
+        
         return img, label
 
 
@@ -75,6 +70,10 @@ class DebugIndividualID(BaseDataModule):
         self.image_dir = self.args.get('image_dir', IMAGE_DIR)
         self.id_encoder_path = self.args.get(
             'id_encoder_path', ID_ENCODER_PATH)
+
+        self.transform = create_transform(
+            input_size=(self.image_size, self.image_size),
+            crop_pct=1.0)
 
         if self.aug:
             self.train_tfms = aug_tfms(self.image_size)
@@ -113,7 +112,8 @@ class DebugIndividualID(BaseDataModule):
             assert 'dir_img' in train_df
         self.train_ds = DebugIndividualIDDataset(
             train_df,
-            transform=albu.Compose(self.train_tfms),
+            # transform=albu.Compose(self.train_tfms),
+            transform=self.tranform,
             id_encoder=id_encoder
         )
         id2weight = (1 / train_df['individual_id'].value_counts()).to_dict()
@@ -131,7 +131,8 @@ class DebugIndividualID(BaseDataModule):
             assert 'dir_img' in valid_df
         self.valid_ds = DebugIndividualIDDataset(
             valid_df,
-            transform=albu.Compose(self.valid_tfms),
+            # transform=albu.Compose(self.valid_tfms),
+            transform=self.transform,
             id_encoder=id_encoder
         )
 
@@ -142,7 +143,9 @@ class DebugIndividualID(BaseDataModule):
         else:
             test_df = ss_df
         self.test_ds = DebugIndividualIDDataset(
-            test_df, transform=albu.Compose(self.test_tfms)
+            test_df, 
+            # transform=albu.Compose(self.test_tfms)
+            transform=self.transform
         )
 
     def prepare_data(self):
