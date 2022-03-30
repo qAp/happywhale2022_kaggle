@@ -55,8 +55,8 @@ def main():
 
     model_summary_callback = pl.callbacks.ModelSummary(max_depth=10)
 
-    callbacks = [model_checkpoint_callback,
-                 lr_monitor_callback]
+    callbacks = [model_checkpoint_callback,]
+                #  lr_monitor_callback]
                 #  model_summary_callback]
 
     trainer = pl.Trainer.from_argparse_args(args,
