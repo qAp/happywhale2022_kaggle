@@ -30,8 +30,8 @@ class BaseLitModel(pl.LightningModule):
         self.metric_fn = import_class(f'happyid.lit_models.metrics.{metric}')
 
         self.lr = self.args.get('lr', LR)
-        optimizer = self.args.get('optimizer', OPTIMIZER)
-        self.optimizer_class = getattr(torch.optim, optimizer)
+        self.optimizer = self.args.get('optimizer', OPTIMIZER)
+        self.optimizer_class = getattr(torch.optim, self.optimizer)
         self.one_cycle_max_lr = self.args.get('one_cycle_max_lr', None)
         self.one_cycle_max_steps = self.model.data_config.get(
             'total_steps', ONE_CYCLE_MAX_STEPS)
