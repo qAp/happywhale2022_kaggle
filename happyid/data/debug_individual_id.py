@@ -140,11 +140,18 @@ class DebugIndividualID(BaseDataModule):
         )
 
         ss_df = pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
+
         if self.infer_subset is not None:
             assert self.infer_subset <= len(ss_df)
             test_df = ss_df.sample(self.infer_subset, replace=False)
         else:
             test_df = ss_df
+
+        if self.image_dir is not None:
+            test_df['dir_img'] = self.image_dir
+        else:
+            assert 'dir_img' in test_df
+
         self.test_ds = DebugIndividualIDDataset(
             test_df, 
             # transform=albu.Compose(self.test_tfms)
