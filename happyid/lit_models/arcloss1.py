@@ -57,3 +57,26 @@ class ArcLoss1LitModel(BaseLitModel):
         scheduler = {"scheduler": scheduler, "interval": "step"}
 
         return [optimizer], [scheduler]
+
+    def training_step(self, batch, batch_idx):
+        xb, yb = batch
+
+        logits = self(xb)
+
+        loss = self.loss_fn(logits, yb.squeeze())
+
+        self.log('train_loss', 
+                 on_step=True, on_epoch=False, prog_bar=True)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        xb, yb = batch
+        
+        logits = self(xb)
+
+        loss = self.loss_fn(logits, yb.squeeze())
+
+        self.log('val_loss', loss, 
+                 on_step=False, on_epoch=True, prog_bar=True)
+                 
