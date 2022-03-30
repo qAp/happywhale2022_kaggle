@@ -65,8 +65,7 @@ class ArcLoss1LitModel(BaseLitModel):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        self.log('train_loss', loss,
-                 on_step=True, on_epoch=False, prog_bar=True)
+        self.log('train_loss', loss)
 
         return loss
 
@@ -77,6 +76,5 @@ class ArcLoss1LitModel(BaseLitModel):
 
         loss = self.loss_fn(logits, yb.squeeze())
 
-        self.log('valid_loss', loss, 
-                 on_step=False, on_epoch=True, prog_bar=True)
+        self.log('valid_loss', loss)
 
