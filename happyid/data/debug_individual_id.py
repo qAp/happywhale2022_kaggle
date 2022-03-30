@@ -35,11 +35,9 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         return len(self.df)
 
     def __getitem__(self, i):
-        r = self.df.iloc[i]
 
         pth = self.image_paths[i]
-        # img = cv2.imread(pth)
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
         img = Image.open(pth).convert('RGB')
 
         if self.transform:
