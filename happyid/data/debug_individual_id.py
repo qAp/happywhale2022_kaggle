@@ -23,8 +23,13 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.id_encoder = id_encoder
 
-        print(self.df)
         self.image_paths = (self.df.dir_img + '/' + self.df.image).values
+
+        if 'individual_id' in self.df:
+            self.targets = self.id_encoder.transform(
+                self.df['individual_id'].values)
+        else:
+            self.targets = -1 * np.ones(len(self.df))
 
     def __len__(self):
         return len(self.df)
@@ -40,15 +45,10 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         if self.transform:
             img = self.transform(img)
 
-        if 'individual_id' in r:
-            if r['individual_id'] in self.id_encoder.classes_:
-                label = self.id_encoder.transform([r['individual_id']])
-            else:
-                label = np.array([-1])
-        else:
-            label = np.array([-1])
+        target = self.targets[i]
+        target = torch.tensor(target, dtype=torch.long)
         
-        return img, label
+        return img, target
 
 
 META_DATA_PATH = '/kaggle/input/happyid-train-meta'
