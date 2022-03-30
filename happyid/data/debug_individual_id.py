@@ -23,7 +23,8 @@ class DebugIndividualIDDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.id_encoder = id_encoder
 
-        self.image_paths = self.df['dir_img'] + '/' + self.df["image"]
+        self.image_paths = self.df.apply(
+            lambda x: f'{x.dir_img}/{x.image}', axis=0).values
 
     def __len__(self):
         return len(self.df)
