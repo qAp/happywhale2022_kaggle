@@ -23,7 +23,7 @@ from tqdm.notebook import tqdm
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import normalize
 from sklearn.preprocessing import LabelEncoder
-from happyid.models.dicusssion import ArcMarginProduct
+from happyid.models.dicussion import ArcMarginProduct
 
 
 class LitModule(pl.LightningModule):
