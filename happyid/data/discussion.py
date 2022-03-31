@@ -32,10 +32,8 @@ from sklearn.preprocessing import LabelEncoder
 INPUT_DIR = Path("..") / "input"
 OUTPUT_DIR = Path("/") / "kaggle" / "working"
 
-# DATA_ROOT_DIR = INPUT_DIR / "convert-backfintfrecords" / \
-#     "happy-whale-and-dolphin-backfin"
-DATA_ROOT_DIR = INPUT_DIR / 'happy-whale-and-dolphin'
-
+DATA_ROOT_DIR = INPUT_DIR / "convert-backfintfrecords" / \
+    "happy-whale-and-dolphin-backfin"
 TRAIN_DIR = DATA_ROOT_DIR / "train_images"
 TEST_DIR = DATA_ROOT_DIR / "test_images"
 TRAIN_CSV_PATH = DATA_ROOT_DIR / "train.csv"
