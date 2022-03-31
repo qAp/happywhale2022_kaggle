@@ -47,7 +47,6 @@ class ArcLoss1LitModel(BaseLitModel):
             lr=self.lr,
             weight_decay=1e-6,
         )
-        print('!!!!!!!! Called timm create_optimizer_v2()')
 
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer,
