@@ -62,7 +62,7 @@ def main():
     trainer = pl.Trainer.from_argparse_args(args,
                                             weights_save_path=args.dir_out,
                                             weights_summary='full',
-                                            # logger=logger,
+                                            logger=logger,
                                             callbacks=callbacks)
 
     trainer.tune(model=lit_model, datamodule=data)
