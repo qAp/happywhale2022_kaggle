@@ -1,5 +1,8 @@
 
-from happyid.data.discussion import *
+'''
+https://www.kaggle.com/code/clemchris/pytorch-backfin-convnext-arcface
+'''
+
 from happyid.models.discussion import ArcMarginProduct
 from happyid.lit_models.discussion import LitModule
 
