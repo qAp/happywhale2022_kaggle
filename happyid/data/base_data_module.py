@@ -29,10 +29,16 @@ class BaseDataModule(pl.LightningDataModule):
         len_train_dl = len(self.train_dataloader())
 
         overfit_batches = self.args.get('overfit_batches')
+        print('epochs', epochs)
+        print('len_train_dl', len_train_dl)
+        print('overfit_batches', overfit_batches, type(overfit_batches))
+
         if overfit_batches != 0:
             if overfit_batches < 1:
+                print('FFFF1')
                 len_train_dl = int(overfit_batches * len_train_dl)
             else:
+                print('FFFF2')
                 len_train_dl = int(overfit_batches)
 
         return dict(

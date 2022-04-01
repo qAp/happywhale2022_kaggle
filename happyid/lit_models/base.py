@@ -54,11 +54,15 @@ class BaseLitModel(pl.LightningModule):
         return self.model(x)
 
     def configure_optimizers(self):
+        print('!@#$!#$!#$!@!@!@@$@#F!$ Configure Optimizer')
+        print('###########################################')
         params = (p for p in self.parameters() if p.requires_grad == True)
         optimizer = self.optimizer_class(params=params, lr=self.lr)
         if self.one_cycle_max_lr is None:
             return {'optimizer': optimizer}
         else:
+            print('self.one_cycle_max_lr', self.one_cycle_max_lr)
+            print('self.one_cycle_max_steps', self.one_cycle_max_steps)
             lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
                 optimizer=optimizer,
                 max_lr=self.one_cycle_max_lr,
