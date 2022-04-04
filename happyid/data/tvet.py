@@ -25,7 +25,7 @@ class TvetRetrievalCVIndividual(IndividualID):
         ref_df = pd.concat([train_df, valid_df, extra_df], axis=0)
         ref_id_set = ref_df.individual_id.unique()
 
-        is_known_id = test_df.individual_id.notin(ref_id_set)
+        is_known_id = test_df.individual_id.isin(ref_id_set)
         test_df.loc[~is_known_id, 'individual_id'] = 'new_individual'
 
         if self.image_dir is not None:
