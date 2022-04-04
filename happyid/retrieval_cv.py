@@ -112,7 +112,7 @@ def main():
         data.prepare_data()
         data.setup()
 
-        model = model_class(args=args)
+        model = model_class(data_config=data.config(), args=args)
         if args.load_from_checkpoint:
             lit_model = lit_model_class.load_from_checkpoint(
                 checkpoint_path=args.load_from_checkpoint,
