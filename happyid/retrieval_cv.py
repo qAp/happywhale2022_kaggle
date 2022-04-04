@@ -68,7 +68,15 @@ def _get_ref_emb(args):
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
-
+    print(NUM_FOLD,
+          len(args.folds_knownid_emb_path),
+          len(args.folds_knownid_emb_meta_path),
+          len(args.folds_newid_emb_path),
+          len(args.folds_newid_emb_meta_path),
+          len(args.folds_model_class),
+          len(args.folds_backbone_name),
+          len(args.folds_checkpoint_path)
+          )
     assert (NUM_FOLD
             == len(args.folds_knownid_emb_path)
             == len(args.folds_knownid_emb_meta_path)
