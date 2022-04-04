@@ -28,19 +28,28 @@ class TvetRetrievalCVIndividual(IndividualID):
         is_known_id = test_df.individual_id.isin(ref_id_set)
         test_df.loc[~is_known_id, 'individual_id'] = 'new_individual'
 
+        # Training set is only needed to get num_class to create model
+        id_encoder = joblib.load(self.id_encoder_path)
+        if self.image_dir is not None:
+            train_df['dir_img'] = self.image_dir
+        else:
+            assert 'dir_img' in train_df
+        self.train_ds = IndividualIDDataset(
+            train_df,
+            transform=albu.Compose(self.train_tfms),
+            id_encoder=id_encoder
+        )
+
         if self.image_dir is not None:
             test_df['dir_img'] = self.image_dir
         else:
             assert 'dir_img' in test_df
-
-        self.train_ds = None
-        self.test_df = None
-
-        id_encoder = joblib.load(self.id_encoder_path)
         self.valid_ds = IndividualIDDataset(
             test_df, 
             transform=albu.Compose(self.valid_tfms),
             id_encoder=id_encoder)
+
+        self.test_df = None
 
     def config(self):
         return {'num_class': len(self.valid_ds.id_encoder.classes_)}
