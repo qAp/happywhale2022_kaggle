@@ -21,19 +21,22 @@ def _setup_parser():
     _add = parser.add_argument
 
     _add('--folds_knownid_emb_path', nargs='+', type=str, 
-         default=5*['emb.npz'])
+         default=NUM_FOLD * ['emb.npz'])
     _add('--folds_knownid_emb_meta_path', nargs='+', type=str,
-         default=5*['train.csv'])
+         default=NUM_FOLD * ['train.csv'])
 
     _add('--folds_newid_emb_path', nargs='+', type=str,
-         default=5 * [None])
+         default=NUM_FOLD * [None])
     _add('--folds_newid_emb_meta_path', nargs='+', type=str,
-         default=5 * [None])
+         default=NUM_FOLD * [None])
 
-    _add('--folds_model_class', nargs='+', type=str, default=5*['DOLG'])
-    _add('--folds_backbone_name', nargs='+', type=str, default=5*['resnet18'])
+    _add('--folds_model_class', nargs='+', type=str, 
+         default=NUM_FOLD * ['DOLG'])
+    _add('--folds_backbone_name', nargs='+', type=str, 
+         default=NUM_FOLD * ['resnet18'])
     _add('--folds_checkpoint_path', nargs='+', type=str,
-        default=5*['best.pth'], help='Model checkpoint paths for the 5 folds.')
+        default=NUM_FOLD * ['best.pth'], 
+        help='Model checkpoint paths for the CV folds.')
 
     return parser
 
