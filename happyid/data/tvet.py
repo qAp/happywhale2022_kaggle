@@ -20,7 +20,7 @@ class TvetRetrievalCVIndividual(IndividualID):
         )
         test_df = pd.read_csv(
             f'{self.meta_data_path}/test_fold{self.fold}.csv'
-        ).iloc[:1_000]
+        ).iloc[:100]
 
         ref_df = pd.concat([train_df, valid_df, extra_df], axis=0)
         ref_id_set = ref_df.individual_id.unique()
