@@ -27,6 +27,7 @@ class TvetRetrievalCVIndividual(IndividualID):
 
         is_known_id = test_df.individual_id.isin(ref_id_set)
         test_df.loc[~is_known_id, 'individual_id'] = 'new_individual'
+        print(test_df.describe())
 
         # Training set is only needed to get num_class to create model
         id_encoder = joblib.load(self.id_encoder_path)
