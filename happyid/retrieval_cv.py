@@ -143,7 +143,8 @@ def main():
                        .apply(lambda x: ' '.join(preds[x])).to_list()
                        )
         labels = data.valid_ds.df['individual_id'].to_list()
-
+        print(labels[:5])
+        print(predictions[:5])
         print('Calculating MAP@5...', end='')
         map5 = map_per_set(labels=labels, predictions=predictions)
         print('done\n')
