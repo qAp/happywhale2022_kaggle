@@ -119,7 +119,7 @@ def main():
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
-        print('Computing distance matrix...', end='')
+        print('Computing distance matrix...')
         dist_matrix = euclidean_dist(emb, ref_emb)
         print('done')
 
