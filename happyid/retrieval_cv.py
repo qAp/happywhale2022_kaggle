@@ -10,9 +10,7 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
-from happyid.lit_models.metrics import map_per_set
 from happyid.retrieval import get_closest_ids_df, predict_top5
-
 
 
 
@@ -67,23 +65,6 @@ def _get_ref_emb(args):
     return ref_emb, ref_emb_meta
 
 
-def get_map5_score(test_df, preds, newid_weight=.1):
-    test_df['prediction'] = test_df.image.apply(lambda x: preds[x])
-
-    is_newid = test_df.individual_id == 'new_individual'
-
-    newid_score = map_per_set(
-        labels=test_df.loc[is_newid, 'individual_id'].to_list(),
-        predictions=test_df.loc[is_newid, 'prediction'].to_list()
-        )
-
-    oldid_score = map_per_set(
-        labels=test_df.loc[~is_newid, 'individual_id'].to_list(),
-        predictions=test_df.loc[~is_newid, 'prediction'].to_list()
-    )
-
-    score = newid_weight * newid_score + (1 - newid_weight) * oldid_score
-    return score
 
 
 

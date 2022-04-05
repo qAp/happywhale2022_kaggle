@@ -1,9 +1,10 @@
 
-
 from tqdm.auto import tqdm
 import numpy as np, pandas as pd
 import torch
 from happyid.lit_models.losses import euclidean_dist
+from happyid.lit_models.metrics import map_per_set
+
 
 
 def get_closest_ids_df(test_df, ref_emb_df, shortest_dist, ref_idx):
@@ -63,6 +64,25 @@ def predict_top5(dist_df, newid_dist_thres=.2):
                 preds[r.image].append(r.individual_id)
 
     return preds
+
+
+def get_map5_score(test_df, preds, newid_weight=.1):
+    test_df['prediction'] = test_df.image.apply(lambda x: preds[x])
+
+    is_newid = test_df.individual_id == 'new_individual'
+
+    newid_score = map_per_set(
+        labels=test_df.loc[is_newid, 'individual_id'].to_list(),
+        predictions=test_df.loc[is_newid, 'prediction'].to_list()
+    )
+
+    oldid_score = map_per_set(
+        labels=test_df.loc[~is_newid, 'individual_id'].to_list(),
+        predictions=test_df.loc[~is_newid, 'prediction'].to_list()
+    )
+
+    score = newid_weight * newid_score + (1 - newid_weight) * oldid_score
+    return score
 
 
 def retrieval_predict(test_df=None, emb=None, ref_emb_df=None, ref_emb=None,
