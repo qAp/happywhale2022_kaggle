@@ -49,7 +49,7 @@ class TvetRetrievalCVIndividual(IndividualID):
             transform=albu.Compose(self.valid_tfms),
             id_encoder=id_encoder)
 
-        self.test_df = None
+        self.test_ds = None
 
     def config(self):
         return {'num_class': len(self.valid_ds.id_encoder.classes_)}
