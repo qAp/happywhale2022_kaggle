@@ -140,7 +140,7 @@ def main():
                 predictions = [preds[image] for image in data.valid_ds.df.image]
                 score = map_per_set(labels=labels, predictions=predictions)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
-                if score > best_score:
+                if score >= best_score:
                     best_score = score
                     best_thres = thres
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
