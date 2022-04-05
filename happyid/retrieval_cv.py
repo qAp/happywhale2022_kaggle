@@ -139,9 +139,7 @@ def main():
         preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
         print('done')
 
-        predictions = (data.valid_ds.df.image
-                       .apply(lambda x: ' '.join(preds[x])).to_list()
-                       )
+        predictions = [preds[image] for image in data.valid_ds.df.image]
         labels = data.valid_ds.df['individual_id'].to_list()
         print(labels[:5])
         print(predictions[:5])
