@@ -139,6 +139,7 @@ def main():
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
                 predictions = [preds[image] for image in data.valid_ds.df.image]
                 score = map_per_set(labels=labels, predictions=predictions)
+                print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score > best_score:
                     best_score = score
                     best_thres = thres
