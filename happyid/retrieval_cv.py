@@ -130,8 +130,10 @@ def main():
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
         print('done')
 
+        print('Retrieve matched ids', end='')
         dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
                                      shortest_dist, ref_idx)
+        print('done')
 
         print('Finalising top 5 predictions...', end='')
         preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
