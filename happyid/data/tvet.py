@@ -19,7 +19,7 @@ class TvetRetrievalCVIndividual(IndividualID):
             f'{self.meta_data_path}/extra_fold{self.fold}.csv'
         )
         test_df = pd.read_csv(
-            f'{self.meta_data_path}/extra_fold{self.fold}.csv'
+            f'{self.meta_data_path}/test_fold{self.fold}.csv'
         )
 
         ref_df = pd.concat([train_df, valid_df, extra_df], axis=0)
