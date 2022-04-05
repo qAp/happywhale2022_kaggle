@@ -1,5 +1,5 @@
 
-import os, sys
+import os, sys, ast
 import argparse
 from tqdm.auto import tqdm
 import importlib
@@ -22,6 +22,7 @@ def _setup_parser():
 
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
+    _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
 
     _add('--folds_id_encoder_path', nargs='+', type=str, 
          default=[f'label_encoder_fold{i}' for i in range(NUM_FOLD)])
@@ -112,42 +113,42 @@ def main():
         # # For debugging, generate random embedding to save time
         # emb = torch.randn(len(data.valid_ds), args.embedding_size)
 
-        print('Loading embedding database for reference...', end='')
         ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
         ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
         ref_emb = torch.from_numpy(ref_emb)
-        print('done')
 
-        print(emb.shape, ref_emb.shape)
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
-        print('Computing distance matrix...')
         dist_matrix = euclidean_dist(emb, ref_emb)
-        print('done')
 
-        print('Get 50 closest database images...', end='')
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
-        print('done')
 
-        print('Retrieve matched ids', end='')
         dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
                                      shortest_dist, ref_idx)
-        print('done')
 
-        print('Finalising top 5 predictions...', end='')
-        preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
-        print('done')
-
-        predictions = [preds[image] for image in data.valid_ds.df.image]
         labels = data.valid_ds.df['individual_id'].to_list()
-        print(labels[:5])
-        print(predictions[:5])
-        print('Calculating MAP@5...', end='')
-        map5 = map_per_set(labels=labels, predictions=predictions)
-        print('done\n')
 
-        folds_score.append(map5)
+        if args.auto_newid_dist_thres:
+            print('Searching for best newid_dist_thres...', end='')
+            thres_step = 0.1
+            thres_values = np.arange(2, 0 - thres_step, - thres_step)
+
+            best_score, best_thres = 0., None
+            for thres in thres_values:
+                preds = predict_top5(dist_df, newid_dist_thres=thres)
+                predictions = [preds[image] for image in data.valid_ds.df.image]
+                score = map_per_set(labels=labels, predictions=predictions)
+                if score > best_score:
+                    best_score = score
+                    best_thres = thres
+            print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
+            folds_score.append(best_score)
+        else:
+            preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
+            predictions = [preds[image] for image in data.valid_ds.df.image]
+            score = map_per_set(labels=labels, predictions=predictions)
+            folds_score.append(score)
 
 
     print('MAP@5 of each fold:', *[f'{score:.3f}' for score in folds_score])
