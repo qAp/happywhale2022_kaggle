@@ -23,6 +23,7 @@ def _setup_parser():
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
     _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
+    _add('--newid_weight', type=float, default=0.1)
 
     _add('--folds_id_encoder_path', nargs='+', type=str, 
          default=[f'label_encoder_fold{i}' for i in range(NUM_FOLD)])
@@ -64,6 +65,26 @@ def _get_ref_emb(args):
         ref_emb_meta = knownid_emb_meta
 
     return ref_emb, ref_emb_meta
+
+
+def get_map5_score(test_df, preds, newid_weight=.1):
+    test_df['prediction'] = test_df.image.apply(lambda x: preds[x])
+
+    is_newid = test_df.individual_id == 'new_individual'
+
+    newid_score = map_per_set(
+        labels=test_df.loc[is_newid, 'individual_id'].to_list(),
+        predictions=test_df.loc[is_newid, 'prediction'].to_list()
+        )
+
+    oldid_score = map_per_set(
+        labels=test_df.loc[~is_newid, 'individual_id'].to_list(),
+        predictions=test_df.loc[~is_newid, 'prediction'].to_list()
+    )
+
+    score = newid_weight * newid_score + (1 - newid_weight) * oldid_score
+    return score
+
 
 
 def main():
@@ -127,8 +148,6 @@ def main():
         dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
                                      shortest_dist, ref_idx)
 
-        labels = data.valid_ds.df['individual_id'].to_list()
-
         if args.auto_newid_dist_thres:
             print('Searching for best newid_dist_thres...', end='')
             thres_step = 0.1
@@ -137,8 +156,8 @@ def main():
             best_score, best_thres = 0., None
             for thres in thres_values:
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
-                predictions = [preds[image] for image in data.valid_ds.df.image]
-                score = map_per_set(labels=labels, predictions=predictions)
+                score = get_map5_score(data.valid_ds.df, preds, 
+                                       newid_weight=args.newid_weight)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
                     best_score = score
@@ -147,8 +166,8 @@ def main():
             folds_score.append(best_score)
         else:
             preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
-            predictions = [preds[image] for image in data.valid_ds.df.image]
-            score = map_per_set(labels=labels, predictions=predictions)
+            score = get_map5_score(data.valid_ds.df, preds, 
+                                   newid_weight=args.newid_weight)
             folds_score.append(score)
 
 
