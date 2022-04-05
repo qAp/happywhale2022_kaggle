@@ -115,6 +115,7 @@ def main():
         ref_emb = torch.from_numpy(ref_emb)
         print('done')
 
+        print(emb.shape, ref_emb.shape)
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
