@@ -106,11 +106,11 @@ def main():
         else:
             lit_model = lit_model_class(model=model, args=args)
 
-        # trainer = pl.Trainer.from_argparse_args(args)
-        # emb = trainer.predict(model=lit_model, dataloaders=data.val_dataloader())
-        # emb = torch.cat(emb, dim=0)
-        # For debugging, generate random embedding to save time
-        emb = torch.randn(len(data.valid_ds), args.embedding_size)
+        trainer = pl.Trainer.from_argparse_args(args)
+        emb = trainer.predict(model=lit_model, dataloaders=data.val_dataloader())
+        emb = torch.cat(emb, dim=0)
+        # # For debugging, generate random embedding to save time
+        # emb = torch.randn(len(data.valid_ds), args.embedding_size)
 
         print('Loading embedding database for reference...', end='')
         ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
