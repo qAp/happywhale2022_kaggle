@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
-from happyid.retrieval import get_closest_ids_df, predict_top5
+from happyid.retrieval import get_closest_ids_df, predict_top5, get_map5_score
 
 
 
