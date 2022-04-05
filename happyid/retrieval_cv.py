@@ -20,7 +20,7 @@ def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
 
-    _add('--newid_dist_thres', type=float, defualt=.2,
+    _add('--newid_dist_thres', type=float, default=.2,
          help='new_individual distance threshold.')
 
     _add('--folds_id_encoder_path', nargs='+', type=str, 
