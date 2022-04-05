@@ -109,7 +109,7 @@ def main():
         # For debugging, generate random embedding to save time
         emb = torch.randn(len(data.valid_ds), args.embedding_size)
 
-        print('Loading embedding database for reference...' end='')
+        print('Loading embedding database for reference...', end='')
         ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
         ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
         ref_emb = torch.from_numpy(ref_emb)
