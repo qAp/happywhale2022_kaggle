@@ -109,25 +109,38 @@ def main():
         # For debugging, generate random embedding to save time
         emb = torch.randn(len(data.valid_ds), args.embedding_size)
 
+        print('Loading embedding database for reference...' end='')
         ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
         ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
         ref_emb = torch.from_numpy(ref_emb)
+        print('done')
 
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
+        print('Computing distance matrix...', end='')
         dist_matrix = euclidean_dist(emb, ref_emb)
+        print('done')
+
+        print('Get 50 closest database images...', end='')
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
+        print('done')
+
         dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
                                      shortest_dist, ref_idx)
+
+        print('Finalising top 5 predictions...', end='')
         preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
+        print('done')
 
         predictions = (data.valid_ds.df.image
                        .apply(lambda x: ' '.join(preds[x])).to_list()
                        )
         labels = data.valid_ds.df['individual_id'].to_list()
 
+        print('Calculating MAP@5...', end='')
         map5 = map_per_set(labels=labels, predictions=predictions)
+        print('done\n')
 
         folds_score.append(map5)
 
