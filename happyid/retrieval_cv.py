@@ -20,6 +20,9 @@ def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
 
+    _add('--newid_dist_thres', type=float, defualt=.2,
+         help='new_individual distance threshold.')
+
     _add('--folds_id_encoder_path', nargs='+', type=str, 
          default=[f'label_encoder_fold{i}' for i in range(NUM_FOLD)])
     _add('--folds_model_class', nargs='+', type=str, 
