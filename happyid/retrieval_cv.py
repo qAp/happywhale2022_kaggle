@@ -69,7 +69,7 @@ def main():
         dist_df = get_closest_ids_df(test_df, ref_df, 
                                      shortest_dist, ref_idx)
         display(dist_df)
-        
+
         if args.auto_newid_dist_thres:
             print('Searching for best newid_dist_thres...', end='')
             thres_step = 0.1
@@ -77,7 +77,9 @@ def main():
 
             best_score, best_thres = 0., None
             for thres in thres_values:
+                print('predict_top5')
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
+                print('get_map5_score')
                 score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
