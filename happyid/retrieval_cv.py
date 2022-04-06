@@ -1,5 +1,6 @@
 
 import os, sys, ast
+from IPython.display import display
 import argparse
 from tqdm.auto import tqdm
 import importlib
@@ -45,6 +46,10 @@ def main():
         ref_df = pd.concat(ref_df_list, axis=0)
 
         test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
+
+        display(emb_df)
+        display(ref_df)
+        display(test_df)
 
         emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
         emb = torch.from_numpy(emb)
