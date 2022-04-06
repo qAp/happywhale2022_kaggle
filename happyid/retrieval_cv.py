@@ -17,68 +17,20 @@ from happyid.retrieval import get_closest_ids_df, predict_top5, get_map5_score
 def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
+    _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
 
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
     _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
     _add('--newid_weight', type=float, default=0.1)
 
-    _add('--folds_id_encoder_path', nargs='+', type=str, 
-         default=[f'label_encoder_fold{i}' for i in range(NUM_FOLD)])
-    _add('--folds_model_class', nargs='+', type=str, 
-         default=NUM_FOLD * ['DOLG'])
-    _add('--folds_backbone_name', nargs='+', type=str, 
-         default=NUM_FOLD * ['resnet18'])
-    _add('--folds_checkpoint_path', nargs='+', type=str,
-        default=NUM_FOLD * ['best.pth'], 
-        help='Model checkpoint paths for the CV folds.')
-    _add('--folds_ref_emb_dir', nargs='+', type=str,
-         default=NUM_FOLD * ['emb'])
-
     return parser
-
-
-def _get_ref_emb(args):
-    ifold = args.fold
-    knownid_emb_path = args.folds_knownid_emb_path[ifold]
-    knownid_emb_meta_path = args.folds_knownid_emb_meta_path[ifold]
-    newid_emb_path = args.folds_newid_emb_path[ifold]
-    newid_emb_meta_path = args.folds_newid_emb_meta_path[ifold]
-
-    knownid_emb = np.load(knownid_emb_path)['embed']
-    knownid_emb_meta = pd.read_csv(knownid_emb_meta_path)
-
-    if newid_emb_path is not None:
-
-        newid_emb = np.load(newid_emb_path)['embed']
-        ref_emb = np.concatenate(
-            [knownid_emb, newid_emb.mean(axis=0, keepdims=True)],
-            axis=0)
-
-        newid_df = pd.DataFrame(columns=knownid_emb_meta.columns)
-        newid_df['individual_id'] = ['new_individual']
-        ref_emb_meta = knownid_emb_meta.append(newid_df, ignore_index=True)
-    else:
-        ref_emb = knownid_emb
-        ref_emb_meta = knownid_emb_meta
-
-    return ref_emb, ref_emb_meta
-
-
 
 
 
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
-
-    assert (NUM_FOLD
-            == len(args.folds_id_encoder_path)
-            == len(args.folds_model_class)
-            == len(args.folds_backbone_name)
-            == len(args.folds_checkpoint_path)
-            == len(args.folds_ref_emb_dir)
-            )
 
     folds_score = []
 
