@@ -43,7 +43,7 @@ def main():
         ref_df_list = [
             pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
             for split in ('train', 'valid', 'extra')]
-        ref_df = pd.concat(ref_df_list, axis=0)
+        ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
 
         test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
 
