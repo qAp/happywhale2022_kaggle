@@ -85,48 +85,27 @@ def main():
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
-        args.fold = ifold
-        args.id_encoder_path = args.folds_id_encoder_path[ifold]
-        args.model_class = args.folds_model_class[ifold]
-        args.backbone_name = args.folds_backbone_name[ifold]
-        args.load_from_checkpoint = args.folds_checkpoint_path[ifold]
-        ref_emb_dir = args.folds_ref_emb_dir[ifold]
+        emb_df = pd.read_csv(f'{args.emb_dir}/fold{ifold}_emb.csv')
 
-        data_class = import_class(f'happyid.data.{args.data_class}')
-        model_class = import_class(f'happyid.models.{args.model_class}')
-        lit_model_class = import_class(
-            f'happyid.lit_models.{args.lit_model_class}')
+        ref_df_list = [
+            pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
+            for split in ('train', 'valid', 'extra')]
+        ref_df = pd.concat(ref_df_list, axis=0)
 
-        data = data_class(args)
-        data.prepare_data()
-        data.setup()
+        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
 
-        model = model_class(data_config=data.config(), args=args)
-        if args.load_from_checkpoint:
-            lit_model = lit_model_class.load_from_checkpoint(
-                checkpoint_path=args.load_from_checkpoint,
-                model=model, args=args)
-        else:
-            lit_model = lit_model_class(model=model, args=args)
-
-        trainer = pl.Trainer.from_argparse_args(args)
-        emb = trainer.predict(model=lit_model, dataloaders=data.val_dataloader())
-        emb = torch.cat(emb, dim=0)
-        # # For debugging, generate random embedding to save time
-        # emb = torch.randn(len(data.valid_ds), args.embedding_size)
-
-        ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
-        ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
-        ref_emb = torch.from_numpy(ref_emb)
-
+        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
+        emb = torch.from_numpy(emb)
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
-        ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
-        dist_matrix = euclidean_dist(emb, ref_emb)
+        ref_emb = emb[emb_df.index[emb_df.image.isin(ref_df.image)].to_list()]
+        test_emb = emb[emb_df.index[emb_df.image.isin(test_df.image)].to_list()]
+
+        dist_matrix = euclidean_dist(test_emb, ref_emb)
 
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
 
-        dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
+        dist_df = get_closest_ids_df(test_df, ref_df, 
                                      shortest_dist, ref_idx)
 
         if args.auto_newid_dist_thres:
@@ -137,7 +116,7 @@ def main():
             best_score, best_thres = 0., None
             for thres in thres_values:
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
-                score = get_map5_score(data.valid_ds.df, preds, 
+                score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
@@ -147,7 +126,7 @@ def main():
             folds_score.append(best_score)
         else:
             preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
-            score = get_map5_score(data.valid_ds.df, preds, 
+            score = get_map5_score(test_df, preds, 
                                    newid_weight=args.newid_weight)
             folds_score.append(score)
 
