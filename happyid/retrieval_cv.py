@@ -68,7 +68,8 @@ def main():
 
         dist_df = get_closest_ids_df(test_df, ref_df, 
                                      shortest_dist, ref_idx)
-
+        display(dist_df)
+        
         if args.auto_newid_dist_thres:
             print('Searching for best newid_dist_thres...', end='')
             thres_step = 0.1
