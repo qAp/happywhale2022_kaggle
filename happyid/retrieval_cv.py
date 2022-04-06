@@ -55,8 +55,10 @@ def main():
         emb = torch.from_numpy(emb)
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
 
-        ref_emb = emb[emb_df.index[emb_df.image.isin(ref_df.image)].to_list()]
-        test_emb = emb[emb_df.index[emb_df.image.isin(test_df.image)].to_list()]
+        m = ref_df.merge(emb_df.reset_index(), on='image', how='inner')
+        ref_emb = emb[m.index.to_list()]
+        m = test_df.merge(emb_df.reset_index(), on='image', how='inner')
+        test_emb = emb[m.index.to_list()]
 
         dist_matrix = euclidean_dist(test_emb, ref_emb)
 
