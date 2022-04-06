@@ -9,8 +9,13 @@ import cv2
 import matplotlib.pyplot as plt
 from happyid.data.config import *
 
+# train_csv_path = f'{DIR_BASE}/train.csv'
+# train_image_dir = f'{DIR_BASE}/train_images'
 
-df = pd.read_csv(f'{DIR_BASE}/train.csv')
+train_csv_path = '/kaggle/input/whale2-cropped-dataset/train2.csv'
+train_image_dir = '/kaggle/input/whale2-cropped-dataset/cropped_train_images/cropped_train_images'
+
+df = pd.read_csv(train_csv_path)
 
 # Take a fraction of the images because /kaggle/working holds only 20 GB.
 vc = df.individual_id.value_counts()
@@ -30,7 +35,7 @@ individual_id_list = []
 
 
 for _, row in tqdm(df.iterrows(), total=len(df)):
-    img = cv2.imread(f'{DIR_BASE}/train_images/{row.image}')
+    img = cv2.imread(f'{train_image_dir}/{row.image}')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img_fliplr = img[:, ::-1, :]
