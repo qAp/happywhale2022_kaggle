@@ -151,7 +151,8 @@ class IndividualID(BaseDataModule):
             batch_size=self.batch_size,
             sampler=self.train_sampler,
             num_workers=self.num_workers,
-            pin_memory=self.on_gpu)
+            pin_memory=self.on_gpu,
+            drop_last=True)
 
     def show_batch(self, split='train'):
         if split == 'valid':
