@@ -60,7 +60,7 @@ def main():
         m = ref_df.merge(emb_df.reset_index(), on='image', how='inner')
         ref_emb = emb[m.index.to_list()]
         m = test_df.merge(emb_df.reset_index(), on='image', how='inner')
-        display(m)
+        print(m)
         test_emb = emb[m.index.to_list()]
 
         print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
