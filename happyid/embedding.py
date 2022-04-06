@@ -35,12 +35,10 @@ def main():
         lit_model = lit_model_class(model=model, args=args)
 
     trainer = pl.Trainer.from_argparse_args(args)
-    # preds = trainer.predict(model=lit_model, 
-    #                         dataloaders=data.test_dataloader())
-    # preds = torch.cat(preds, dim=0)
-    # preds = preds.cpu().numpy()
-    # Uncomment to check embedding fits in memory:
-    preds = np.random.randn(len(data.test_ds), model.embedding_size)
+    preds = trainer.predict(model=lit_model, 
+                            dataloaders=data.test_dataloader())
+    preds = torch.cat(preds, dim=0)
+    preds = preds.cpu().numpy()
 
     pathlib.Path(args.dir_out).mkdir(exist_ok=True, parents=True)
     np.savez_compressed(f'{args.dir_out}/fold{data.fold}_emb', 
