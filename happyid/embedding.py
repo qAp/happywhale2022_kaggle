@@ -41,10 +41,11 @@ def main():
     preds = preds.cpu().numpy()
 
     pathlib.Path(args.dir_out).mkdir(exist_ok=True, parents=True)
-    np.savez_compressed(f'{args.dir_out}/emb', 
+    np.savez_compressed(f'{args.dir_out}/fold{data.fold}_emb', 
                         embed=preds)
 
-    data.test_ds.df.to_csv(f'{args.dir_out}/emb.csv', index=False)
+    data.test_ds.df.to_csv(
+        f'{args.dir_out}/fold{data.fold}_emb.csv', index=False)
 
 
 if __name__ == '__main__':
