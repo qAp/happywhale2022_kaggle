@@ -71,17 +71,23 @@ def get_map5_score(test_df, preds, newid_weight=.1):
 
     is_newid = test_df.individual_id == 'new_individual'
 
-    newid_score = map_per_set(
-        labels=test_df.loc[is_newid, 'individual_id'].to_list(),
-        predictions=test_df.loc[is_newid, 'prediction'].to_list()
-    )
+    if is_newid.any():
+        newid_score = map_per_set(
+            labels=test_df.loc[is_newid, 'individual_id'].to_list(),
+            predictions=test_df.loc[is_newid, 'prediction'].to_list()
+        )
+        newid_score *= newid_weight
+    else:
+        newid_score = 0
 
     oldid_score = map_per_set(
         labels=test_df.loc[~is_newid, 'individual_id'].to_list(),
         predictions=test_df.loc[~is_newid, 'prediction'].to_list()
     )
+    oldid_score *= (1 - newid_weight)
 
-    score = newid_weight * newid_score + (1 - newid_weight) * oldid_score
+    score = newid_score + oldid_score
+
     return score
 
 
