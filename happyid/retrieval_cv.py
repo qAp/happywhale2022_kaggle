@@ -60,6 +60,8 @@ def main():
         m = test_df.merge(emb_df.reset_index(), on='image', how='inner')
         test_emb = emb[m.index.to_list()]
 
+        print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
+
         dist_matrix = euclidean_dist(test_emb, ref_emb)
 
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
