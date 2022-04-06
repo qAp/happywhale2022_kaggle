@@ -67,7 +67,10 @@ class TvetEmbeddedIndividual(IndividualID):
         extra_df = pd.read_csv(
             f'{self.meta_data_path}/extra_fold{self.fold}.csv'
         )
-        ref_df = pd.concat([train_df, valid_df, extra_df], axis=0)
+        test_df = pd.read_csv(
+            f'{self.meta_data_path}/test_fold{self.fold}.csv'
+        )
+        ref_df = pd.concat([train_df, valid_df, extra_df, test_df], axis=0)
         if self.image_dir is not None:
             ref_df['dir_img'] = self.image_dir
         else:
