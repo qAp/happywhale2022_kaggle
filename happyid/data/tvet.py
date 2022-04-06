@@ -58,30 +58,21 @@ class TvetRetrievalCVIndividual(IndividualID):
 
 class TvetEmbeddedIndividual(IndividualID):
     def setup(self):
-        train_df = pd.read_csv(
-            f'{self.meta_data_path}/train_fold{self.fold}.csv'
-        )
-        valid_df = pd.read_csv(
-            f'{self.meta_data_path}/valid_fold{self.fold}.csv'
-        )
-        extra_df = pd.read_csv(
-            f'{self.meta_data_path}/extra_fold{self.fold}.csv'
-        )
-        test_df = pd.read_csv(
-            f'{self.meta_data_path}/test_fold{self.fold}.csv'
-        )
-        ref_df = pd.concat([train_df, valid_df, extra_df, test_df], axis=0)
-        if self.image_dir is not None:
-            ref_df['dir_img'] = self.image_dir
+        if self.image_dir == '/kaggle/input/whale2-cropped-dataset':
+            train_df = pd.read_csv(f'{self.image_dir}/train2.csv')
+            train_df['dir_img'] = f'{self.image_dir}/cropped_train_images/cropped_train_images'
+            test_df = pd.read_csv(f'{self.image_dir}/test2.csv')
+            test_df['dir_img'] = f'{self.image_dir}/cropped_test_images/cropped_test_images'
+            emb_df = pd.concat([train_df, test_df], axis=0)
         else:
-            assert 'dir_img' in ref_df
+            raise NotImplementedError
 
         self.train_ds = None
         self.valid_ds = None
 
         id_encoder = joblib.load(self.id_encoder_path)
         self.test_ds = IndividualIDDataset(
-            ref_df, 
+            emb_df, 
             transform=albu.Compose(self.test_tfms), 
             id_encoder=id_encoder)
 
