@@ -18,54 +18,14 @@ from happyid.retrieval import get_closest_ids_df, predict_top5, get_map5_score
 def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
+    _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
 
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
     _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
     _add('--newid_weight', type=float, default=0.1)
 
-    _add('--folds_id_encoder_path', nargs='+', type=str, 
-         default=[f'label_encoder_fold{i}' for i in range(NUM_FOLD)])
-    _add('--folds_model_class', nargs='+', type=str, 
-         default=NUM_FOLD * ['DOLG'])
-    _add('--folds_backbone_name', nargs='+', type=str, 
-         default=NUM_FOLD * ['resnet18'])
-    _add('--folds_checkpoint_path', nargs='+', type=str,
-        default=NUM_FOLD * ['best.pth'], 
-        help='Model checkpoint paths for the CV folds.')
-    _add('--folds_ref_emb_dir', nargs='+', type=str,
-         default=NUM_FOLD * ['emb'])
-
     return parser
-
-
-def _get_ref_emb(args):
-    ifold = args.fold
-    knownid_emb_path = args.folds_knownid_emb_path[ifold]
-    knownid_emb_meta_path = args.folds_knownid_emb_meta_path[ifold]
-    newid_emb_path = args.folds_newid_emb_path[ifold]
-    newid_emb_meta_path = args.folds_newid_emb_meta_path[ifold]
-
-    knownid_emb = np.load(knownid_emb_path)['embed']
-    knownid_emb_meta = pd.read_csv(knownid_emb_meta_path)
-
-    if newid_emb_path is not None:
-
-        newid_emb = np.load(newid_emb_path)['embed']
-        ref_emb = np.concatenate(
-            [knownid_emb, newid_emb.mean(axis=0, keepdims=True)],
-            axis=0)
-
-        newid_df = pd.DataFrame(columns=knownid_emb_meta.columns)
-        newid_df['individual_id'] = ['new_individual']
-        ref_emb_meta = knownid_emb_meta.append(newid_df, ignore_index=True)
-    else:
-        ref_emb = knownid_emb
-        ref_emb_meta = knownid_emb_meta
-
-    return ref_emb, ref_emb_meta
-
-
 
 
 
@@ -73,73 +33,49 @@ def main():
     parser = _setup_parser()
     args = parser.parse_args()
 
-    assert (NUM_FOLD
-            == len(args.folds_id_encoder_path)
-            == len(args.folds_model_class)
-            == len(args.folds_backbone_name)
-            == len(args.folds_checkpoint_path)
-            == len(args.folds_ref_emb_dir)
-            )
-
     folds_score = []
 
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
-        args.fold = ifold
-        args.id_encoder_path = args.folds_id_encoder_path[ifold]
-        args.model_class = args.folds_model_class[ifold]
-        args.backbone_name = args.folds_backbone_name[ifold]
-        args.load_from_checkpoint = args.folds_checkpoint_path[ifold]
-        ref_emb_dir = args.folds_ref_emb_dir[ifold]
+        emb_df = pd.read_csv(f'{args.emb_dir}/fold{ifold}_emb.csv')
 
-        data_class = import_class(f'happyid.data.{args.data_class}')
-        model_class = import_class(f'happyid.models.{args.model_class}')
-        lit_model_class = import_class(
-            f'happyid.lit_models.{args.lit_model_class}')
+        ref_df_list = [
+            pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
+            for split in ('train', 'valid', 'extra')]
+        ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
 
-        data = data_class(args)
-        data.prepare_data()
-        data.setup()
+        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
+        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
+        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
 
-        model = model_class(data_config=data.config(), args=args)
-        if args.load_from_checkpoint:
-            lit_model = lit_model_class.load_from_checkpoint(
-                checkpoint_path=args.load_from_checkpoint,
-                model=model, args=args)
-        else:
-            lit_model = lit_model_class(model=model, args=args)
+        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
+        emb = torch.from_numpy(emb)
 
-        trainer = pl.Trainer.from_argparse_args(args)
-        emb = trainer.predict(model=lit_model, dataloaders=data.val_dataloader())
-        emb = torch.cat(emb, dim=0)
-        # # For debugging, generate random embedding to save time
-        # emb = torch.randn(len(data.valid_ds), args.embedding_size)
+        ref_idx = (
+            ref_df
+            .merge(emb_df.reset_index(), on='image', how='inner')['index']
+            .to_list()
+        )
+        ref_emb = emb[ref_idx]
 
-        ref_emb = np.load(f'{ref_emb_dir}/emb.npz')['embed']
-        ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
-        ref_emb = torch.from_numpy(ref_emb)
+        test_idx = (
+            test_df
+            .merge(emb_df.reset_index(), on='image', how='inner')['index']
+            .to_list()
+        )
+        test_emb = emb[test_idx]
 
-        print('ref image')
-        display(ref_emb_df.image.values)
-        print('ref emb')
-        print(ref_emb)
-
-        print('test image')
-        display(data.valid_ds.df.image.values)
-        print('test emb')
-        print(emb)
-
-        emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
-
-        dist_matrix = euclidean_dist(emb, ref_emb)
+        test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
+        dist_matrix = euclidean_dist(test_emb, ref_emb)
 
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
 
-        dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
+        dist_df = get_closest_ids_df(test_df, ref_df, 
                                      shortest_dist, ref_idx)
         
+        print('Distance df')                                        
         display(dist_df.describe())
 
         if args.auto_newid_dist_thres:
@@ -150,17 +86,18 @@ def main():
             best_score, best_thres = 0., None
             for thres in thres_values:
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
-                score = get_map5_score(data.valid_ds.df, preds, 
+                score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
                     best_score = score
                     best_thres = thres
+
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
             preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
-            score = get_map5_score(data.valid_ds.df, preds, 
+            score = get_map5_score(test_df, preds, 
                                    newid_weight=args.newid_weight)
             folds_score.append(score)
 
