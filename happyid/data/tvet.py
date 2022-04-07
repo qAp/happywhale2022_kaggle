@@ -63,7 +63,7 @@ class TvetEmbeddedIndividual(IndividualID):
             train_df['dir_img'] = f'{self.image_dir}/cropped_train_images/cropped_train_images'
             test_df = pd.read_csv(f'{self.image_dir}/test2.csv')
             test_df['dir_img'] = f'{self.image_dir}/cropped_test_images/cropped_test_images'
-            emb_df = pd.concat([train_df, test_df], axis=0)
+            emb_df = pd.concat([train_df, test_df], axis=0, ignore_index=True)
         else:
             raise NotImplementedError
 
