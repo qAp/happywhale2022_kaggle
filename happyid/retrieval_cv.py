@@ -52,12 +52,11 @@ def main():
 
         emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
         emb = torch.from_numpy(emb)
-        emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
+        # emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
 
         m = ref_df.merge(emb_df.reset_index(), on='image', how='inner')
         ref_emb = emb[m.index.to_list()]
         m = test_df.merge(emb_df.reset_index(), on='image', how='inner')
-        print(m.columns)
         test_emb = emb[m.index.to_list()]
 
         print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
