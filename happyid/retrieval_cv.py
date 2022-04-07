@@ -2,6 +2,7 @@
 import os, sys, ast
 import argparse
 from tqdm.auto import tqdm
+from IPython.display import display
 import importlib
 import numpy as np, pandas as pd
 import torch, torch.nn as nn
@@ -119,6 +120,11 @@ def main():
         ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
         ref_emb = torch.from_numpy(ref_emb)
 
+        print('ref_df summary:')
+        display(ref_emb_df.describe())
+        print('test_df summary:')
+        display(data.valid_ds.df.describe())
+
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
 
@@ -128,6 +134,8 @@ def main():
 
         dist_df = get_closest_ids_df(data.valid_ds.df, ref_emb_df, 
                                      shortest_dist, ref_idx)
+        
+        display(dist_df.describe())
 
         if args.auto_newid_dist_thres:
             print('Searching for best newid_dist_thres...', end='')
