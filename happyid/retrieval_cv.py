@@ -49,15 +49,23 @@ def main():
         is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
         test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
 
-
         emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
         emb = torch.from_numpy(emb)
         # emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
 
-        m = ref_df.merge(emb_df.reset_index(), on='image', how='inner')
-        ref_emb = emb[m.index.to_list()]
-        m = test_df.merge(emb_df.reset_index(), on='image', how='inner')
-        test_emb = emb[m.index.to_list()]
+        ref_idx = (
+            ref_df
+            .merge(emb_df.reset_index(), on='image', how='inner')['index']
+            .to_list()
+        )
+        ref_emb = emb[ref_idx]
+
+        test_idx = (
+            test_df
+            .merge(emb_df.reset_index(), on='image', how='inner')['index']
+            .to_list()
+        )
+        test_emb = emb[test_idx]
 
         print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
 
@@ -70,6 +78,8 @@ def main():
         print('test emb')
         print(test_emb)
 
+        ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
+        test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
         dist_matrix = euclidean_dist(test_emb, ref_emb)
 
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
