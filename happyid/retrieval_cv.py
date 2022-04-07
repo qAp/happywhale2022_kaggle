@@ -45,7 +45,7 @@ def main():
             for split in ('train', 'valid', 'extra')]
         ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
 
-        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv').iloc[:100]
+        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
         is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
         test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
 
@@ -92,7 +92,7 @@ def main():
                 if score >= best_score:
                     best_score = score
                     best_thres = thres
-                    
+
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
