@@ -51,7 +51,6 @@ def main():
 
         emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
         emb = torch.from_numpy(emb)
-        # emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
 
         ref_idx = (
             ref_df
@@ -67,17 +66,6 @@ def main():
         )
         test_emb = emb[test_idx]
 
-        print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
-
-        print('ref image')
-        print(ref_df.image.values)
-        print('ref emb')
-        print(ref_emb)
-        print('test image')
-        print(test_df.image.values)
-        print('test emb')
-        print(test_emb)
-
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
         test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
         dist_matrix = euclidean_dist(test_emb, ref_emb)
@@ -86,6 +74,8 @@ def main():
 
         dist_df = get_closest_ids_df(test_df, ref_df, 
                                      shortest_dist, ref_idx)
+
+        print('Distance df')                                        
         display(dist_df.describe())
 
         if args.auto_newid_dist_thres:
@@ -95,15 +85,14 @@ def main():
 
             best_score, best_thres = 0., None
             for thres in thres_values:
-                print('predict_top5')
                 preds = predict_top5(dist_df, newid_dist_thres=thres)
-                print('get_map5_score')
                 score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
                     best_score = score
                     best_thres = thres
+                    
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
