@@ -49,9 +49,6 @@ def main():
         is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
         test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
 
-        display(emb_df)
-        display(ref_df)
-        display(test_df)
 
         emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
         emb = torch.from_numpy(emb)
@@ -64,6 +61,15 @@ def main():
         test_emb = emb[m.index.to_list()]
 
         print(ref_df.shape, ref_emb.shape, test_df.shape, test_emb.shape)
+
+        print('ref image')
+        print(ref_df.image.values)
+        print('ref emb')
+        print(ref_emb)
+        print('test image')
+        print(test_df.image.values)
+        print('test emb')
+        print(test_emb)
 
         dist_matrix = euclidean_dist(test_emb, ref_emb)
 
