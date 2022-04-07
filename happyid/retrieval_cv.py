@@ -45,7 +45,7 @@ def main():
             for split in ('train', 'valid', 'extra')]
         ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
 
-        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
+        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv').iloc[:100]
         is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
         test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
 
