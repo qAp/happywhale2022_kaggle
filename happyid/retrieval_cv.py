@@ -120,10 +120,15 @@ def main():
         ref_emb_df = pd.read_csv(f'{ref_emb_dir}/emb.csv')
         ref_emb = torch.from_numpy(ref_emb)
 
-        print('ref_df summary:')
-        display(ref_emb_df.describe())
-        print('test_df summary:')
-        display(data.valid_ds.df.describe())
+        print('ref image')
+        display(ref_emb_df.image.values)
+        print('ref emb')
+        print(ref_emb)
+
+        print('test image')
+        display(data.valid_ds.df.image.values)
+        print('test emb')
+        print(emb)
 
         emb = emb / emb.norm(p='fro', dim=1, keepdim=True)
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
