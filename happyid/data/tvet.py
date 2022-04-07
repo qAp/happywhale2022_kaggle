@@ -20,7 +20,7 @@ class TvetRetrievalCVIndividual(IndividualID):
         )
         test_df = pd.read_csv(
             f'{self.meta_data_path}/test_fold{self.fold}.csv'
-        )
+        ).iloc[:100]
 
         ref_df = pd.concat([train_df, valid_df, extra_df], axis=0)
         ref_id_set = ref_df.individual_id.unique()
@@ -65,7 +65,7 @@ class TvetEmbeddedIndividual(IndividualID):
             test_df['dir_img'] = f'{self.image_dir}/cropped_test_images/cropped_test_images'
             fliplr_df = pd.read_csv('/kaggle/input/happyid-fliplr-images/train.csv')
             fliplr_df['dir_img'] = '/kaggle/input/happyid-fliplr-images/train_images'
-            
+
             emb_df = pd.concat([train_df, test_df, fliplr_df], 
                                axis=0, ignore_index=True)
         else:
