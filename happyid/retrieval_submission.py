@@ -25,8 +25,6 @@ def _setup_parser():
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
-    _add('--batch_size', type=int, default=500)
-
     return parser
 
 
