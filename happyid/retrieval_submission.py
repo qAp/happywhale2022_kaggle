@@ -68,9 +68,13 @@ def main():
     test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
 
     print('Retrieving...')
+    print('Computing distance matrix...')
     dist_matrix = euclidean_dist(test_emb, ref_emb)
+    print('Searching closest 50...')
     shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
+    print('Distance df')
     dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
+    print('Predict closest 5')
     preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
 
     test_df['prediction'] = test_df.image.apply(lambda x: preds[x])
