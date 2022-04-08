@@ -23,11 +23,9 @@ def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
-
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
-    _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
-    _add('--newid_weight', type=float, default=0.1)
+    _add('--batch_size', type=int, default=500)
 
     return parser
 
@@ -68,10 +66,21 @@ def main():
     test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
 
     print('Retrieving...')
+
     print('Computing distance matrix...')
-    dist_matrix = euclidean_dist(test_emb, ref_emb)
-    print('Searching closest 50...')
-    shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
+    num_batch = (len(test_df) - 1) // args.batch_size + 1
+    shortest_dist_list = []
+    ref_idx_list = []
+    for ib in tqdm(range(num_batch), total=num_batch):
+        batch_test_emb = test_emb[ib * args.batch_size: (ib + 1) * args.batch_size]
+        dist_matrix = euclidean_dist(batch_test_emb, ref_emb)
+        shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
+        shortest_dist_list.append(shortest_dist)
+        ref_idx_list.append(ref_idx)
+
+    shortest_dist = torch.cat(shortest_dist_list, dim=0)
+    ref_idx = torch.cat(ref_idx_list, dim=0)
+
     print('Distance df')
     dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
     print('Predict closest 5')
