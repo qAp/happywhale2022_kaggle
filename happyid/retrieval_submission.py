@@ -84,7 +84,7 @@ def main():
     print('Predict closest 5')
     preds = predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
 
-    test_df['prediction'] = test_df.image.apply(lambda x: preds[x])
+    test_df['prediction'] = test_df.image.apply(lambda x: ' '.join(preds[x]))
     test_df.to_csv('/kaggle/working/submission.csv', index=False)
 
 
