@@ -39,19 +39,13 @@ def main():
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
         emb_df = pd.read_csv(f'{args.emb_dir}/fold{ifold}_emb.csv')
+        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
+        emb = torch.from_numpy(emb)
 
         ref_df_list = [
             pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
             for split in ('train', 'valid', 'extra')]
         ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
-
-        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
-        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
-        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
-
-        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
-        emb = torch.from_numpy(emb)
-
         ref_idx = (
             ref_df
             .merge(emb_df.reset_index(), on='image', how='inner')['index']
@@ -59,6 +53,9 @@ def main():
         )
         ref_emb = emb[ref_idx]
 
+        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
+        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
+        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
         test_idx = (
             test_df
             .merge(emb_df.reset_index(), on='image', how='inner')['index']
@@ -72,8 +69,7 @@ def main():
 
         shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
 
-        dist_df = get_closest_ids_df(test_df, ref_df, 
-                                     shortest_dist, ref_idx)
+        dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
         
         print('Distance df')                                        
         display(dist_df.describe())
