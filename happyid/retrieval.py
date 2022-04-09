@@ -40,7 +40,7 @@ def get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx):
     return dist_df
 
 
-def predict_top5(dist_df, newid_dist_thres=.2):
+def distance_predict_top5(dist_df, newid_dist_thres=.2):
     '''
     Args:
         dist_df (pd.DataFrame): Shortest distances and corrsponding 
