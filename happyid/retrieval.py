@@ -7,11 +7,11 @@ from happyid.lit_models.metrics import map_per_set
 
 
 
-def get_closest_ids_df(test_df, ref_emb_df, shortest_dist, ref_idx):
+def get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx):
     '''
     Args:
         test_df (pd.DataFrame): Test image meta data.
-        ref_emb_df (pd.DataFrame): Database image meta data.
+        ref_df (pd.DataFrame): Database image meta data.
         shortest_dist (torch.Tensor): Distances of k closest 
             database images to each test image.
         ref_idx (torch.Tensor): Indices of database images with shortest k
@@ -29,7 +29,7 @@ def get_closest_ids_df(test_df, ref_emb_df, shortest_dist, ref_idx):
     for i, image in enumerate(test_df.image.values):
         df = pd.DataFrame(
             {'distance': shortest_dist[i].numpy(),
-             'individual_id': ref_emb_df.loc[ref_idx[i], 'individual_id'].values,
+             'individual_id': ref_df.loc[ref_idx[i], 'individual_id'].values,
              'image': num_closest * [image]})
 
         df_list.append(df)
@@ -93,7 +93,7 @@ def retrieval_predict(test_df=None, emb=None, ref_emb_df=None, ref_emb=None,
 
     dist_matrix = euclidean_dist(emb, ref_emb)
     shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
-    dist_df = get_closest_ids_df(test_df, ref_emb_df, shortest_dist, ref_idx)
+    dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
     preds = final_predict(dist_df, newid_dist_thres=newid_dist_thres)
 
     return preds
