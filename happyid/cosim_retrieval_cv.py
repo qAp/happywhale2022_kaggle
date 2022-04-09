@@ -26,7 +26,7 @@ def _setup_parser():
 
     _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
-    _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
+    _add('--auto_newid_close_thres', type=ast.literal_eval, default='False')
     _add('--newid_weight', type=float, default=0.1)
 
     return parser
@@ -71,10 +71,13 @@ def main():
         print('Close df')                                        
         display(close_df.describe())
 
-        if args.auto_newid_dist_thres:
-            print('Searching for best newid_dist_thres...', end='')
+        if args.auto_newid_close_thres:
+            print('Searching for best newid_close_thres...', end='')
             thres_step = 0.1
-            thres_values = np.arange(2, 0 - thres_step, - thres_step)
+            if args.retrieval_crit == 'cossim':
+                thres_values = np.arange(-1, 1 + thres_step, thres_step)
+            else:
+                thres_values = np.arange(2, 0 - thres_step, - thres_step)
 
             best_score, best_thres = 0., None
             for thres in thres_values:
