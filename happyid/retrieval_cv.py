@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
-from happyid.retrieval import get_closest_ids_df, distance_predict_top5, get_map5_score
+from happyid.retrieval import (get_closest_ids_df, 
+                               distance_predict_top5, 
+                               get_map5_score)
 
 
 
@@ -92,7 +94,9 @@ def main():
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
-            preds = distance_predict_top5(dist_df, newid_dist_thres=args.newid_dist_thres)
+            preds = distance_predict_top5(
+                dist_df, 
+                newid_dist_thres=args.newid_dist_thres)
             score = get_map5_score(test_df, preds, 
                                    newid_weight=args.newid_weight)
             folds_score.append(score)
