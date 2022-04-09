@@ -12,8 +12,8 @@ from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
 from happyid.retrieval import (
-    load_embedding, load_ref_test_dfs, get_emb_subset,
-    get_closest_ids_df, distance_predict_top5, 
+    cosine_similarity, load_embedding, load_ref_test_dfs, get_emb_subset,
+    get_closest_ids_df, predict_top5, 
     get_map5_score)
 
 
@@ -22,6 +22,7 @@ def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
+    _add('--retrieval_crit', type=str, default='cossim')
 
     _add('--newid_dist_thres', type=float, default=.8,
          help='new_individual distance threshold.')
@@ -52,16 +53,23 @@ def main():
         ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
         test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
 
-        ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
-        test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
-        dist_matrix = euclidean_dist(test_emb, ref_emb)
+        if args.retrieval_crit == 'cossim':
+            close_matrix = cosine_similarity(test_emb, ref_emb)
+        else:
+            ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
+            test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
+            close_matrix = euclidean_dist(test_emb, ref_emb)
 
-        shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
+        topked = torch.topk(
+            close_matrix, k=50, dim=1, 
+            largest=True if args.retrieval_crit == 'cossim' else False)
 
-        dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
+        close_df = get_closest_ids_df(
+            test_df, ref_df, topked,
+            retrieval_crit=args.retrieval_crit)
         
-        print('Distance df')                                        
-        display(dist_df.describe())
+        print('Close df')                                        
+        display(close_df.describe())
 
         if args.auto_newid_dist_thres:
             print('Searching for best newid_dist_thres...', end='')
@@ -70,9 +78,12 @@ def main():
 
             best_score, best_thres = 0., None
             for thres in thres_values:
-                preds = distance_predict_top5(dist_df, newid_dist_thres=thres)
+                preds = predict_top5(close_df, newid_close_thres=thres,
+                                     retrieval_crit=args.retrieval_crit)
+
                 score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
+
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
                     best_score = score
@@ -81,9 +92,11 @@ def main():
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
-            preds = distance_predict_top5(
-                dist_df, 
-                newid_dist_thres=args.newid_dist_thres)
+            preds = predict_top5(
+                close_df, 
+                newid_close_thres=args.newid_close_thres,
+                retrieval_crit=args.retrieval_crit)
+
             score = get_map5_score(test_df, preds, 
                                    newid_weight=args.newid_weight)
             folds_score.append(score)

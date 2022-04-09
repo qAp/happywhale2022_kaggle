@@ -46,56 +46,82 @@ def get_emb_subset(emb_df, emb, subset_df):
     return subset_df, subset_emb
 
 
-def get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx):
+def cosine_similarity(test_emb, ref_emb):
+    assert test_emb.shape[1] == ref_emb.shape[1]
+
+    test_norm = test_emb.norm(p='fro', dim=1, keepdim=True)
+    ref_norm = ref_emb.norm(p='fro', dim=1, keepdim=True)
+
+    test_emb /= torch.max(test_norm, 1e-10 * torch.ones_like(test_norm))
+    ref_emb /= torch.max(ref_norm, 1e-10 * torch.ones_like(ref_norm))
+
+    cosim = test_emb.mm(ref_emb.transpose(1, 0))
+
+    return cosim
+
+
+def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
     '''
     Args:
         test_df (pd.DataFrame): Test image meta data.
         ref_df (pd.DataFrame): Database image meta data.
-        shortest_dist (torch.Tensor): Distances of k closest 
-            database images to each test image.
-        ref_idx (torch.Tensor): Indices of database images with shortest k
-            distances to each test image.
+        topked (torch.topk): Top k closest database images to each
+            test image.
+        retrieval_crit (str): Retrieve by cosine similarity ('cossim')
+            or euclidean distance ('distance')
     
     Returns:
-        dist_df (pd.DataFrame): Shortest distances and corrsponding 
+        close_df (pd.DataFrame): Closest criterion values and corrsponding 
             individual_ids to test images.
     '''
-    assert len(shortest_dist) == len(ref_idx) == len(test_df)
-    assert shortest_dist.shape[1] == ref_idx.shape[1]
-    num_closest = shortest_dist.shape[1]
+    assert len(topked.indices) == len(test_df)
+    num_closest = topked.indices.shape[1]
 
     df_list = []
     for i, image in enumerate(test_df.image.values):
         df = pd.DataFrame(
-            {'distance': shortest_dist[i].numpy(),
-             'individual_id': ref_df.loc[ref_idx[i], 'individual_id'].values,
+            {'closeness': topked.values[i].numpy(),
+             'individual_id': ref_df.loc[topked.indices[i], 'individual_id'].values,
              'image': num_closest * [image]})
 
         df_list.append(df)
 
-    dist_df = pd.concat(df_list, axis=0)
-    dist_df = dist_df.groupby(['image', 'individual_id']).min().reset_index()
-    dist_df.sort_values('distance', axis=0, inplace=True)
-    return dist_df
+    close_df = pd.concat(df_list, axis=0)
+    grpd = close_df.groupby(['image', 'individual_id'])
+    close_df = grpd.max() if retrieval_crit == 'cossim' else grpd.min()
+    close_df = (
+        close_df
+        .reset_index()
+        .sort_values('distance', axis=0,
+                     ascending=False if retrieval_crit=='cossim' else True)
+    )
+    return close_df
 
 
-def distance_predict_top5(dist_df, newid_dist_thres=.2):
+def predict_top5(close_df, newid_close_thres=.2, retrieval_crit='cossim'):
     '''
     Args:
-        dist_df (pd.DataFrame): Shortest distances and corrsponding 
+        close_df (pd.DataFrame): Shortest distances and corrsponding 
             individual_ids to test images.
-        newid_dist_thres (float): Distance threshold for 'new_individual'.
+        newid_close_thres (float): Retrieval criterion threshold 
+            for 'new_individual'.
     Returns:
         preds (dict): Final predicted individual_ids for 
             each test image.
     '''
     preds = {}
-    for _, r in tqdm(dist_df.iterrows(), total=len(dist_df)):
+    for _, r in tqdm(close_df.iterrows(), total=len(close_df)):
         if r.image not in preds:
-            if r.distance > newid_dist_thres:
+            if retrieval_crit == 'cossim':
+                newid_is_closest = newid_close_thres > r.closeness
+            else:
+                newid_is_closest = newid_close_thres < r.closeness
+
+            if newid_is_closest:
                 preds[r.image] = ['new_individual', r.individual_id]
             else:
                 preds[r.image] = [r.individual_id, 'new_individual']
+
         else:
             if len(preds[r.image]) == 5:
                 continue
