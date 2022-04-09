@@ -92,7 +92,7 @@ def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
     close_df = (
         close_df
         .reset_index()
-        .sort_values('distance', axis=0,
+        .sort_values('closeness', axis=0,
                      ascending=False if retrieval_crit=='cossim' else True)
     )
     return close_df
