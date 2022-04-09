@@ -12,7 +12,7 @@ from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
 from happyid.retrieval import (
-    load_embedding, load_ref_test_dfs, 
+    load_embedding, load_ref_test_dfs, get_emb_subset,
     get_closest_ids_df, distance_predict_top5, 
     get_map5_score)
 
