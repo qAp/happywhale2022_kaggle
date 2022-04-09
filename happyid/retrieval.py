@@ -92,14 +92,16 @@ def retrieve_topk(test_emb, ref_emb, k=50, batch_size=10_000,
         close_func = euclidean_dist
         largest = False
 
-    topked_list = []
+    values_list, indices_list = [], []
     for emb in test_emb.split(batch_size):
         close_matrix = close_func(emb, ref_emb)
         topked = torch.topk(close_matrix, k=k, dim=1, largest=largest)
-        topked_list += [topked]
+        values_list += [topked.values]
+        indices_list += [topked.indices]
 
-    topked = torch.cat(topked_list, dim=0)
-
+    values = torch.cat(values_list, dim=0)
+    indices = torch.cat(indices_list, dim=0)
+    topked = {'values': values, 'indices': indices}
     return topked
 
 
@@ -108,8 +110,8 @@ def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
     Args:
         test_df (pd.DataFrame): Test image meta data.
         ref_df (pd.DataFrame): Database image meta data.
-        topked (torch.topk): Top k closest database images to each
-            test image.
+        topked (dict): Top k closest database images to each
+            test image. {'values': torch.Tensor, 'indices': torch.Tensor}
         retrieval_crit (str): Retrieve by cosine similarity ('cossim')
             or euclidean distance ('distance')
     
@@ -117,14 +119,15 @@ def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
         close_df (pd.DataFrame): Closest criterion values and corrsponding 
             individual_ids to test images.
     '''
-    assert len(topked.indices) == len(test_df)
-    num_closest = topked.indices.shape[1]
+    values, indices = topked['values'], topked['indices']
+    assert len(indices) == len(test_df)
+    num_closest = indices.shape[1]
 
     df_list = []
     for i, image in enumerate(test_df.image.values):
         df = pd.DataFrame(
-            {'closeness': topked.values[i].numpy(),
-             'individual_id': ref_df.loc[topked.indices[i], 'individual_id'].values,
+            {'closeness': values[i].numpy(),
+             'individual_id': ref_df.loc[indices[i], 'individual_id'].values,
              'image': num_closest * [image]})
 
         df_list.append(df)
