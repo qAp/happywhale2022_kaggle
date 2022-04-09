@@ -2,7 +2,6 @@
 from tqdm.auto import tqdm
 import numpy as np, pandas as pd
 import torch
-from happyid.lit_models.losses import euclidean_dist
 from happyid.lit_models.metrics import map_per_set
 
 
@@ -58,6 +57,50 @@ def cosine_similarity(test_emb, ref_emb):
     cosim = test_emb.mm(ref_emb.transpose(1, 0))
 
     return cosim
+
+
+def euclidean_dist(x, y):
+    """
+    Args:
+      x: pytorch Variable, with shape [m, d]
+      y: pytorch Variable, with shape [n, d]
+    Returns:
+      dist: pytorch Variable, with shape [m, n]
+    """
+    x_norm = x.norm(p='fro', dim=1, keepdim=True).clamp(min=1e-12)
+    y_norm = y.norm(p='fro', dim=1, keepdim=True).clamp(min=1e-12)
+
+    x /= x_norm
+    y /= y_norm
+
+    m, n = x.size(0), y.size(0)
+    xx = torch.pow(x, 2).sum(1, keepdim=True).expand(m, n)
+    yy = torch.pow(y, 2).sum(1, keepdim=True).expand(n, m).t()
+    dist = xx + yy
+    dist.addmm_(x, y.t(), beta=1, alpha=-2)
+    dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
+    return dist
+
+
+def retrieve_topk(test_emb, ref_emb, k=50, batch_size=10_000,
+                  retrieval_crit='cossim'):
+
+    if retrieval_crit == 'cossim':
+        close_func = cosine_similarity
+        largest = True
+    else:
+        close_func = euclidean_dist
+        largest = False
+
+    topked_list = []
+    for emb in test_emb.split(batch_size):
+        close_matrix = close_func(emb, ref_emb)
+        topked = torch.topk(close_matrix, k=k, dim=1, largest=largest)
+        topked_list += [topked]
+
+    topked = torch.cat(topked_list, dim=0)
+
+    return topked
 
 
 def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):

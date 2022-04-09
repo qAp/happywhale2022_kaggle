@@ -64,6 +64,10 @@ def main():
             close_matrix, k=50, dim=1, 
             largest=True if args.retrieval_crit == 'cossim' else False)
 
+        topked = retrieve_topk(test_emb, ref_emb, k=50, 
+                               batch_size=len(test_emb),
+                               retrieval_crit=args.retrieval_crit)
+
         close_df = get_closest_ids_df(
             test_df, ref_df, topked,
             retrieval_crit=args.retrieval_crit)
