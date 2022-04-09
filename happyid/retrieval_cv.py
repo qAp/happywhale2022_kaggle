@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
-from happyid.retrieval import (get_closest_ids_df, 
-                               distance_predict_top5, 
-                               get_map5_score)
+from happyid.retrieval import (
+    load_embedding, load_ref_test_dfs, get_emb_subset,
+    retrieve_topk, get_closest_ids_df, predict_top5, 
+    get_map5_score)
 
 
 
@@ -21,10 +22,11 @@ def _setup_parser():
     parser = setup_parser()
     _add = parser.add_argument
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
+    _add('--retrieval_crit', type=str, default='cossim')
 
-    _add('--newid_dist_thres', type=float, default=.8,
+    _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
-    _add('--auto_newid_dist_thres', type=ast.literal_eval, default='False')
+    _add('--auto_newid_close_thres', type=ast.literal_eval, default='False')
     _add('--newid_weight', type=float, default=0.1)
 
     return parser
@@ -40,52 +42,44 @@ def main():
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
-        emb_df = pd.read_csv(f'{args.emb_dir}/fold{ifold}_emb.csv')
-        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
-        emb = torch.from_numpy(emb)
+        emb_df, emb = load_embedding(args.emb_dir, ifold)
 
-        ref_df_list = [
-            pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
-            for split in ('train', 'valid', 'extra')]
-        ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
-        ref_idx = (
-            ref_df
-            .merge(emb_df.reset_index(), on='image', how='inner')['index']
-            .to_list()
-        )
-        ref_emb = emb[ref_idx]
+        ref_df, test_df = load_ref_test_dfs(
+            meta_data_path=args.meta_data_path, ifold=ifold,
+            ref_splits=['train', 'valid', 'extra'],
+            test_splits=['test'],
+            new_individual=True
+            )
+        ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
+        test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
 
-        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
-        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
-        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
-        test_idx = (
-            test_df
-            .merge(emb_df.reset_index(), on='image', how='inner')['index']
-            .to_list()
-        )
-        test_emb = emb[test_idx]
+        topked = retrieve_topk(test_emb, ref_emb, k=50, 
+                               batch_size=len(test_emb),
+                               retrieval_crit=args.retrieval_crit)
 
-        ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
-        test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
-        dist_matrix = euclidean_dist(test_emb, ref_emb)
-
-        shortest_dist, ref_idx = dist_matrix.topk(k=50, largest=False, dim=1)
-
-        dist_df = get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx)
+        close_df = get_closest_ids_df(
+            test_df, ref_df, topked,
+            retrieval_crit=args.retrieval_crit)
         
-        print('Distance df')                                        
-        display(dist_df.describe())
+        print('Close df')                                        
+        display(close_df.describe())
 
-        if args.auto_newid_dist_thres:
-            print('Searching for best newid_dist_thres...', end='')
+        if args.auto_newid_close_thres:
+            print('Searching for best newid_close_thres...', end='')
             thres_step = 0.1
-            thres_values = np.arange(2, 0 - thres_step, - thres_step)
+            if args.retrieval_crit == 'cossim':
+                thres_values = np.arange(-1, 1 + thres_step, thres_step)
+            else:
+                thres_values = np.arange(2, 0 - thres_step, - thres_step)
 
             best_score, best_thres = 0., None
             for thres in thres_values:
-                preds = distance_predict_top5(dist_df, newid_dist_thres=thres)
+                preds = predict_top5(close_df, newid_close_thres=thres,
+                                     retrieval_crit=args.retrieval_crit)
+
                 score = get_map5_score(test_df, preds, 
                                        newid_weight=args.newid_weight)
+
                 print(f'thres = {thres:.1f}. score = {score:.3f}')
                 if score >= best_score:
                     best_score = score
@@ -94,9 +88,11 @@ def main():
             print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
             folds_score.append(best_score)
         else:
-            preds = distance_predict_top5(
-                dist_df, 
-                newid_dist_thres=args.newid_dist_thres)
+            preds = predict_top5(
+                close_df, 
+                newid_close_thres=args.newid_close_thres,
+                retrieval_crit=args.retrieval_crit)
+
             score = get_map5_score(test_df, preds, 
                                    newid_weight=args.newid_weight)
             folds_score.append(score)
