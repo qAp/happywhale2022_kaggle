@@ -12,8 +12,8 @@ from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
 from happyid.retrieval import (
-    cosine_similarity, load_embedding, load_ref_test_dfs, get_emb_subset,
-    get_closest_ids_df, predict_top5, 
+    load_embedding, load_ref_test_dfs, get_emb_subset,
+    retrieve_topk, get_closest_ids_df, predict_top5, 
     get_map5_score)
 
 
@@ -52,17 +52,6 @@ def main():
             )
         ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
         test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
-
-        if args.retrieval_crit == 'cossim':
-            close_matrix = cosine_similarity(test_emb, ref_emb)
-        else:
-            ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
-            test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
-            close_matrix = euclidean_dist(test_emb, ref_emb)
-
-        topked = torch.topk(
-            close_matrix, k=50, dim=1, 
-            largest=True if args.retrieval_crit == 'cossim' else False)
 
         topked = retrieve_topk(test_emb, ref_emb, k=50, 
                                batch_size=len(test_emb),
