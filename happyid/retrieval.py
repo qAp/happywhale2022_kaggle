@@ -6,6 +6,45 @@ from happyid.lit_models.losses import euclidean_dist
 from happyid.lit_models.metrics import map_per_set
 
 
+def load_embedding(emb_dir, ifold):
+    emb_df = pd.read_csv(f'{emb_dir}/fold{ifold}_emb.csv')
+    emb = np.load(f'{emb_dir}/fold{ifold}_emb.npz')['embed']
+    emb = torch.from_numpy(emb)
+    return emb_df, emb
+
+
+def load_ref_test_dfs(meta_data_path='./', ifold=0,
+                      ref_splits=['train', 'valid', 'extra'],
+                      test_splits=['test'], 
+                      new_individual=True):
+    dfs = [
+        pd.read_csv(f'{meta_data_path}/{s}_fold{ifold}.csv')
+        for s in ref_splits
+        ]
+    ref_df = pd.concat(dfs, axis=0, ignore_index=True)
+
+    dfs = [
+        pd.read_csv(f'{meta_data_path}/{s}_fold{ifold}.csv')
+        for s in test_splits
+    ]
+    test_df = pd.concat(dfs, axis=0, ignore_index=True)
+
+    if new_individual:
+        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
+        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
+
+    return ref_df, test_df
+
+
+def get_emb_subset(emb_df, emb, subset_df):
+    subset_idx = (
+        subset_df
+        .merge(emb_df.reset_index(), on='image', how='inner')['index']
+        .to_list()
+    )
+    subset_emb = emb[subset_idx]
+    return subset_df, subset_emb
+
 
 def get_closest_ids_df(test_df, ref_df, shortest_dist, ref_idx):
     '''

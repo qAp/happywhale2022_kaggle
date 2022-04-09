@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
-from happyid.retrieval import (get_closest_ids_df, 
-                               distance_predict_top5, 
-                               get_map5_score)
+from happyid.retrieval import (
+    load_embedding, load_ref_test_dfs, 
+    get_closest_ids_df, distance_predict_top5, 
+    get_map5_score)
 
 
 
@@ -40,30 +41,16 @@ def main():
     for ifold in range(NUM_FOLD):
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
-        emb_df = pd.read_csv(f'{args.emb_dir}/fold{ifold}_emb.csv')
-        emb = np.load(f'{args.emb_dir}/fold{ifold}_emb.npz')['embed']
-        emb = torch.from_numpy(emb)
+        emb_df, emb = load_embedding(args.emb_dir, ifold)
 
-        ref_df_list = [
-            pd.read_csv(f'{args.meta_data_path}/{split}_fold{ifold}.csv') 
-            for split in ('train', 'valid', 'extra')]
-        ref_df = pd.concat(ref_df_list, axis=0, ignore_index=True)
-        ref_idx = (
-            ref_df
-            .merge(emb_df.reset_index(), on='image', how='inner')['index']
-            .to_list()
-        )
-        ref_emb = emb[ref_idx]
-
-        test_df = pd.read_csv(f'{args.meta_data_path}/test_fold{ifold}.csv')
-        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
-        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
-        test_idx = (
-            test_df
-            .merge(emb_df.reset_index(), on='image', how='inner')['index']
-            .to_list()
-        )
-        test_emb = emb[test_idx]
+        ref_df, test_df = load_ref_test_dfs(
+            meta_data_path=args.meta_data_path, ifold=ifold,
+            ref_splits=['train', 'valid', 'extra'],
+            test_splits=['test'],
+            new_individual=True
+            )
+        ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
+        test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
 
         ref_emb = ref_emb / ref_emb.norm(p='fro', dim=1, keepdim=True)
         test_emb = test_emb / test_emb.norm(p='fro', dim=1, keepdim=True)
