@@ -147,7 +147,7 @@ def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
 def predict_top5(close_df, newid_close_thres=.2, retrieval_crit='cossim'):
     '''
     Args:
-        close_df (pd.DataFrame): Shortest distances and corrsponding 
+        close_df (pd.DataFrame): Closest criterion values and corresponding 
             individual_ids to test images.
         newid_close_thres (float): Retrieval criterion threshold 
             for 'new_individual'.
