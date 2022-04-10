@@ -40,7 +40,7 @@ def main():
     emb_df, emb = load_embedding(args.emb_dir, ifold)
 
     ref_df = load_ref_test_dfs(
-        meta_data_path=args.meta_data_dir, ifold=0,
+        meta_data_path=args.meta_data_path, ifold=0,
         ref_splits=['train', 'valid', 'extra', 'test'],
         test_splits=None)
     test_df = pd.read_csv(
