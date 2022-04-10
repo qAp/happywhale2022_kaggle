@@ -22,17 +22,22 @@ def load_ref_test_dfs(meta_data_path='./', ifold=0,
         ]
     ref_df = pd.concat(dfs, axis=0, ignore_index=True)
 
-    dfs = [
-        pd.read_csv(f'{meta_data_path}/{s}_fold{ifold}.csv')
-        for s in test_splits
-    ]
-    test_df = pd.concat(dfs, axis=0, ignore_index=True)
+    if test_splits is not None:
+        dfs = [
+            pd.read_csv(f'{meta_data_path}/{s}_fold{ifold}.csv')
+            for s in test_splits
+        ]
+        test_df = pd.concat(dfs, axis=0, ignore_index=True)
 
-    if new_individual:
-        is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
-        test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
+        if new_individual:
+            is_oldid = test_df.individual_id.isin(ref_df.individual_id.unique())
+            test_df.loc[~is_oldid, 'individual_id'] = 'new_individual'
+        
+        return ref_df, test_df
 
-    return ref_df, test_df
+    else:
+        return ref_df
+
 
 
 def get_emb_subset(emb_df, emb, subset_df):
