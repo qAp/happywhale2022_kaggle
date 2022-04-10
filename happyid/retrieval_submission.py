@@ -28,7 +28,6 @@ def _setup_parser():
     _add('--retrieval_crit', type=str, default='cossim')
     _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
-    _add('--batch_size', type=int, default=10_000)
     return parser
 
 
