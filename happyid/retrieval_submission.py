@@ -28,6 +28,7 @@ def _setup_parser():
     _add('--retrieval_crit', type=str, default='cossim')
     _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
+    _add('--batch_size', type=int, default=10_000)
     return parser
 
 
@@ -40,7 +41,7 @@ def main():
     emb_df, emb = load_embedding(args.emb_dir, ifold)
 
     ref_df = load_ref_test_dfs(
-        meta_data_path='./', ifold=0,
+        meta_data_path=args.meta_data_dir, ifold=0,
         ref_splits=['train', 'valid', 'extra', 'test'],
         test_splits=None)
     test_df = pd.read_csv(
@@ -49,7 +50,8 @@ def main():
     ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
     test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
 
-    topked = retrieve_topk(test_emb, ref_emb, k=50, batch_size=10_000,
+    topked = retrieve_topk(test_emb, ref_emb, k=50, 
+                           batch_size=args.batch_size,
                            retrieval_crit=args.retrieval_crit)
 
     close_df = get_closest_ids_df(test_df, ref_df, topked, 
