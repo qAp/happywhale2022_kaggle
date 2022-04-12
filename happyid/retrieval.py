@@ -2,6 +2,7 @@
 from tqdm.auto import tqdm
 import numpy as np, pandas as pd
 import torch
+from happyid.data.config import *
 from happyid.lit_models.metrics import map_per_set
 
 
@@ -10,6 +11,15 @@ def load_embedding(emb_dir, ifold):
     emb = np.load(f'{emb_dir}/fold{ifold}_emb.npz')['embed']
     emb = torch.from_numpy(emb)
     return emb_df, emb
+
+
+def load_fliplr_df():
+    df = pd.read_csv(f'{DIR_FLIPLR}/train.csv')
+    return df
+
+
+def load_ss():
+    return pd.read_csv(f'{DIR_BASE}/sample_submission.csv')
 
 
 def load_ref_test_dfs(meta_data_path='./', ifold=0,
