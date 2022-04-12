@@ -10,4 +10,6 @@ STD_IMG = np.array([0.229, 0.224, 0.225], dtype='float32')
 
 NUM_FOLD = 1
 
+DIR_FLIPLR = '/kaggle/input/happyid-fliplr-images'
+
 
