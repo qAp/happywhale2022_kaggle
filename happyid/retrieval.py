@@ -59,15 +59,23 @@ def get_emb_subset(emb_df, emb, subset_df):
     return subset_df, subset_emb
 
 
-def include_new_individual(ref_df, ref_emb, new_df, new_emb):
-    avg_new_emb = torch.mean(new_emb, dim=0, keepdim=True)
-    ref_emb = torch.cat([ref_emb, avg_new_emb], dim=0)
-    ref_df = ref_df.append(
-        pd.DataFrame({'individual_id': ['new_individual']}),
-        ignore_index=True)
+def include_new_individual(ref_df, ref_emb, new_df, new_emb, 
+                           method=None):
+
+    if method is None:
+        new_df['individual_id'] = 'new_individual'
+        ref_df = ref_df.append(new_df, ignore_index=True)
+        ref_emb = torch.cat([ref_emb, new_emb], dim=0)
+
+    elif method == 'mean':
+        ref_df = ref_df.append(
+            pd.DataFrame({'individual_id': ['new_individual']}),
+            ignore_index=True)
+        avg_new_emb = torch.mean(new_emb, dim=0, keepdim=True)
+        ref_emb = torch.cat([ref_emb, avg_new_emb], dim=0)
 
     return ref_df, ref_emb
-    
+
 
 def cosine_similarity(test_emb, ref_emb):
     assert test_emb.shape[1] == ref_emb.shape[1]
