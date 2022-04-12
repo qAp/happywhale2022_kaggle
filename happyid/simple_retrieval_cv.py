@@ -24,7 +24,7 @@ def _setup_parser():
     _add = parser.add_argument
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
     _add('--retrieval_crit', type=str, default='cossim')
-
+    _add('--newid_inclusion_method', type=str, default=None)
     _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
     _add('--auto_newid_close_thres', type=ast.literal_eval, default='False')
@@ -56,8 +56,9 @@ def main():
         test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
         new_df, new_emb = get_emb_subset(emb_df, emb, new_df)
 
-        ref_df, ref_emb = include_new_individual(ref_df, ref_emb, 
-                                                 new_df, new_emb)
+        ref_df, ref_emb = include_new_individual(
+            ref_df, ref_emb, new_df, new_emb,
+            method=args.newid_inclusion_method)
 
         topked = retrieve_topk(test_emb, ref_emb, k=50, 
                                batch_size=len(test_emb),
