@@ -159,6 +159,20 @@ def get_closest_ids_df(test_df, ref_df, topked, retrieval_crit='cossim'):
     return close_df
 
 
+def simple_predict_top5(close_df):
+    preds = {}
+    for _, r in tqdm(close_df.iterrows(), total=len(close_df)):
+        image, individual_id = r['image'], r['individual_id']
+        if image not in preds:
+            preds[image] = [individual_id, ]
+        else:
+            if len(preds[image]) == 5:
+                continue
+            else:
+                preds[image] += [individual_id, ]
+    return preds
+    
+
 def predict_top5(close_df, newid_close_thres=.2, retrieval_crit='cossim'):
     '''
     Args:
