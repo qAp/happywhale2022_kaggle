@@ -12,8 +12,9 @@ from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
 from happyid.retrieval import (
-    load_embedding, load_ref_test_dfs, get_emb_subset,
-    retrieve_topk, get_closest_ids_df, predict_top5, 
+    load_embedding, load_ref_test_dfs, load_fliplr_df, load_ss,
+    get_emb_subset, include_new_individual,
+    retrieve_topk, get_closest_ids_df, simple_predict_top5,
     get_map5_score)
 
 
@@ -32,7 +33,6 @@ def _setup_parser():
     return parser
 
 
-
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
@@ -48,54 +48,28 @@ def main():
             meta_data_path=args.meta_data_path, ifold=ifold,
             ref_splits=['train', 'valid', 'extra'],
             test_splits=['test'],
-            new_individual=True
-            )
+            new_individual=True)
+
+        new_df = load_fliplr_df()
+
         ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
         test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
+        new_df, new_emb = get_emb_subset(emb_df, emb, new_df)
+
+        ref_df, ref_emb = include_new_individual(ref_df, ref_emb, 
+                                                 new_df, new_emb)
 
         topked = retrieve_topk(test_emb, ref_emb, k=50, 
                                batch_size=len(test_emb),
                                retrieval_crit=args.retrieval_crit)
 
-        close_df = get_closest_ids_df(
-            test_df, ref_df, topked,
-            retrieval_crit=args.retrieval_crit)
-        
-        print('Close df')                                        
-        display(close_df.describe())
+        close_df = get_closest_ids_df(test_df, ref_df, topked,
+                                      retrieval_crit=args.retrieval_crit)
 
-        if args.auto_newid_close_thres:
-            print('Searching for best newid_close_thres...', end='')
-            thres_step = 0.1
-            if args.retrieval_crit == 'cossim':
-                thres_values = np.arange(-1, 1 + thres_step, thres_step)
-            else:
-                thres_values = np.arange(2, 0 - thres_step, - thres_step)
+        preds = simple_predict_top5(close_df)
 
-            best_score, best_thres = 0., None
-            for thres in thres_values:
-                preds = predict_top5(close_df, newid_close_thres=thres,
-                                     retrieval_crit=args.retrieval_crit)
-
-                score = get_map5_score(test_df, preds, 
-                                       newid_weight=args.newid_weight)
-
-                print(f'thres = {thres:.1f}. score = {score:.3f}')
-                if score >= best_score:
-                    best_score = score
-                    best_thres = thres
-
-            print(f'Best newid_dist_thres = {best_thres:.1f}. Score = {best_score:.3f}.')
-            folds_score.append(best_score)
-        else:
-            preds = predict_top5(
-                close_df, 
-                newid_close_thres=args.newid_close_thres,
-                retrieval_crit=args.retrieval_crit)
-
-            score = get_map5_score(test_df, preds, 
-                                   newid_weight=args.newid_weight)
-            folds_score.append(score)
+        score = get_map5_score(test_df, preds, newid_weight=args.newid_weight)
+        folds_score.append(score)
 
 
     print('MAP@5 of each fold:', *[f'{score:.3f}' for score in folds_score])
