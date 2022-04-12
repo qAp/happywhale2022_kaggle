@@ -49,7 +49,6 @@ def load_ref_test_dfs(meta_data_path='./', ifold=0,
         return ref_df
 
 
-
 def get_emb_subset(emb_df, emb, subset_df):
     subset_idx = (
         subset_df
@@ -59,6 +58,16 @@ def get_emb_subset(emb_df, emb, subset_df):
     subset_emb = emb[subset_idx]
     return subset_df, subset_emb
 
+
+def include_new_individual(ref_df, ref_emb, new_df, new_emb):
+    avg_new_emb = torch.mean(new_emb, dim=0, keepdim=True)
+    ref_emb = torch.cat([ref_emb, avg_new_emb], dim=0)
+    ref_df = ref_df.append(
+        pd.DataFrame({'individual_id': ['new_individual']}),
+        ignore_index=True)
+
+    return ref_df, ref_emb
+    
 
 def cosine_similarity(test_emb, ref_emb):
     assert test_emb.shape[1] == ref_emb.shape[1]
@@ -171,7 +180,7 @@ def simple_predict_top5(close_df):
             else:
                 preds[image] += [individual_id, ]
     return preds
-    
+
 
 def predict_top5(close_df, newid_close_thres=.2, retrieval_crit='cossim'):
     '''
