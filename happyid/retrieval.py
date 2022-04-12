@@ -60,9 +60,9 @@ def get_emb_subset(emb_df, emb, subset_df):
 
 
 def include_new_individual(ref_df, ref_emb, new_df, new_emb, 
-                           method=None):
+                           method='all'):
 
-    if method is None:
+    if method == 'all':
         new_df['individual_id'] = 'new_individual'
         ref_df = ref_df.append(new_df, ignore_index=True)
         ref_emb = torch.cat([ref_emb, new_emb], dim=0)
@@ -73,6 +73,9 @@ def include_new_individual(ref_df, ref_emb, new_df, new_emb,
             ignore_index=True)
         avg_new_emb = torch.mean(new_emb, dim=0, keepdim=True)
         ref_emb = torch.cat([ref_emb, avg_new_emb], dim=0)
+
+    else:
+        raise NotImplementedError
 
     return ref_df, ref_emb
 

@@ -24,7 +24,7 @@ def _setup_parser():
     _add = parser.add_argument
     _add('--emb_dir', type=str, default='/kaggle/input/happyid-tvet-data')
     _add('--retrieval_crit', type=str, default='cossim')
-    _add('--newid_inclusion_method', type=str, default=None)
+    _add('--newid_inclusion_method', type=str, default='all')
     _add('--newid_close_thres', type=float, default=.8,
          help='new_individual distance threshold.')
     _add('--auto_newid_close_thres', type=ast.literal_eval, default='False')
