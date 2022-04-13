@@ -118,7 +118,8 @@ def euclidean_dist(x, y):
 
 
 def retrieve_topk(test_emb, ref_emb, k=50, batch_size=10_000,
-                  retrieval_crit='cossim'):
+                  retrieval_crit='cossim',
+                  ref_to_new_close=None):
 
     if retrieval_crit == 'cossim':
         close_func = cosine_similarity
@@ -130,6 +131,13 @@ def retrieve_topk(test_emb, ref_emb, k=50, batch_size=10_000,
     values_list, indices_list = [], []
     for emb in test_emb.split(batch_size):
         close_matrix = close_func(emb, ref_emb)
+
+        if ref_to_new_close is not None:
+            if retrieval_crit == 'cossim':
+                close_matrix -= ref_to_new_close
+            else:
+                close_matrix += ref_to_new_close
+
         topked = torch.topk(close_matrix, k=k, dim=1, largest=largest)
         values_list += [topked.values]
         indices_list += [topked.indices]

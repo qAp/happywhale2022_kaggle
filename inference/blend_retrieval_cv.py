@@ -12,7 +12,7 @@ from happyid.data.config import *
 from happyid.utils import import_class, setup_parser
 from happyid.lit_models.losses import euclidean_dist
 from happyid.retrieval import (
-    load_embedding, load_ref_test_dfs, get_emb_subset,
+    load_embedding, load_fliplr_df, load_ref_test_dfs, get_emb_subset,
     retrieve_topk, get_closest_ids_df, predict_top5, 
     get_map5_score)
 
@@ -43,19 +43,27 @@ def main():
         print(f'Validating fold {ifold + 1}/{NUM_FOLD}')
 
         emb_df, emb = load_embedding(args.emb_dir, ifold)
-
         ref_df, test_df = load_ref_test_dfs(
             meta_data_path=args.meta_data_path, ifold=ifold,
             ref_splits=['train', 'valid', 'extra'],
             test_splits=['test'],
             new_individual=True
             )
+        new_df = load_fliplr_df()
+
         ref_df, ref_emb = get_emb_subset(emb_df, emb, ref_df)
         test_df, test_emb = get_emb_subset(emb_df, emb, test_df)
+        new_df, new_emb = get_emb_subset(emb_df, emb, new_df)
+
+        topked = retrieve_topk(ref_emb, new_emb, k=3, 
+                               batch_size=20_000,
+                               retrieval_crit=args.retrieval_crit)
+        ref_to_new_close = torch.mean(topked['values'], dim=1)
 
         topked = retrieve_topk(test_emb, ref_emb, k=50, 
                                batch_size=len(test_emb),
-                               retrieval_crit=args.retrieval_crit)
+                               retrieval_crit=args.retrieval_crit,
+                               ref_to_new_close=ref_to_new_close)
 
         close_df = get_closest_ids_df(
             test_df, ref_df, topked,
